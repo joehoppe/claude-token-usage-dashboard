@@ -64,5 +64,5 @@ This should only implement MIT license packages. Prompt if you want to consider 
 
 ## Spec Documents
 
-Markdown spec documents should be saved in the folder in which it will likely be implemented.
+Markdown spec documents should be saved in the folder in which it will likely be implemented, and committed alongside the code.
 When and if the feature itself is removed, the spec should also be removed.

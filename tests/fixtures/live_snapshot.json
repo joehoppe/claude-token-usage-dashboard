@@ -1,0 +1,75 @@
+{
+  "oauthAccount": {
+    "userRateLimitTier": "example_rate_limit_tier",
+    "seatTier": "example_seat_tier"
+  },
+  "cachedUsageUtilization": {
+    "fetchedAtMs": 1785953100000,
+    "accountUuid": "REDACTED-0000-0000-0000-000000000000",
+    "utilization": {
+      "five_hour": {
+        "utilization": 25,
+        "resets_at": "2026-08-06T00:00:00Z",
+        "limit_dollars": null,
+        "used_dollars": null,
+        "remaining_dollars": null
+      },
+      "seven_day": {
+        "utilization": 50,
+        "resets_at": "2026-08-07T00:00:00Z",
+        "limit_dollars": null,
+        "used_dollars": null,
+        "remaining_dollars": null
+      },
+      "null_placeholder_a": null,
+      "null_placeholder_b": null,
+      "null_placeholder_c": null,
+      "null_placeholder_d": null,
+      "null_placeholder_e": null,
+      "limits": [
+        {
+          "kind": "session",
+          "group": "session",
+          "percent": 25,
+          "severity": "normal",
+          "resets_at": "2026-08-06T00:00:00Z",
+          "scope": null,
+          "is_active": false
+        },
+        {
+          "kind": "weekly_all",
+          "group": "weekly",
+          "percent": 50,
+          "severity": "normal",
+          "resets_at": "2026-08-07T00:00:00Z",
+          "scope": null,
+          "is_active": false
+        },
+        {
+          "kind": "weekly_scoped",
+          "group": "weekly",
+          "percent": 75,
+          "severity": "normal",
+          "resets_at": "2026-08-07T00:00:00Z",
+          "is_active": true,
+          "scope": {
+            "model": { "id": null, "display_name": "Fable" },
+            "surface": null
+          }
+        }
+      ],
+      "extra_usage": { "is_enabled": false },
+      "spend": {
+        "used": { "amount_minor": 0, "currency": "USD", "exponent": 2 },
+        "limit": null,
+        "percent": 0,
+        "enabled": false
+      }
+    }
+  },
+  "cachedGrowthBookFeatures": {
+    "tengu_rate_limit_promo_notices": [
+      { "text": "+50% weekly limits promo through Aug 19 · clau.de/cc-50-promo" }
+    ]
+  }
+}

@@ -1,0 +1,20 @@
+[project]
+name = "claude-usage"
+version = "0.1.0"
+description = "One-shot CLI showing Claude Code quota usage from the local cache"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+
+[project.scripts]
+claude-usage = "claude_usage.ui.cli.main:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["claude_usage*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
