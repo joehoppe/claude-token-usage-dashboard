@@ -1,11 +1,15 @@
-# CLI Quota POC — Design Spec
+# CLI Quota — Design Spec
 
-**Status:** Approved for planning
+**Status:** Approved — shipped, and maintained as a permanent driver rather
+than a throwaway proof of concept.
 **Date:** 2026-08-05
+**Amended:** 2026-08-11 — no longer a stepping-stone superseded by the wx app;
+see [`2026-08-10-quota-app-design.md`](../app/2026-08-10-quota-app-design.md)
+§7 for the feature-parity policy this implies going forward.
 **Author:** Joseph Hoppe (drafted with Claude Code)
-**Parent:** [`SPEC.md`](../../../SPEC.md) — the wxPython dashboard. This POC seeds
-that project's inner rings; the wx frame later becomes a second driver over the
-same core.
+**Parent:** [`SPEC.md`](../../../SPEC.md) — the wxPython dashboard. This CLI
+seeded that project's inner rings and remains a permanent second driver over
+the same core, alongside the wx app.
 
 A one-shot command-line tool that reproduces the three usage bars Claude Code
 displays — session, weekly, and model-scoped weekly — with percentages, reset
@@ -37,6 +41,14 @@ The tool answers exactly one question: **can I keep working right now?**
 Secondary goal: establish the `domain/` `application/` `infrastructure/` `ui/`
 layout mandated by `CLAUDE.md`, so the wxPython work starts from a tested core
 rather than from scratch.
+
+**Ongoing goal, effective 2026-08-11:** stay at feature parity with the wx app
+as both evolve. This was originally a POC that the app would supersede and
+delete; it now ships and is maintained indefinitely as a second driver over the
+shared core. See
+[`2026-08-10-quota-app-design.md`](../app/2026-08-10-quota-app-design.md) §7
+for what "parity" requires of each change and where the two drivers are
+allowed to differ.
 
 ## 2. Non-goals
 
@@ -273,7 +285,7 @@ Pure functions from `QuotaSnapshot` to `str`. No I/O; the caller prints.
 **Row order: source order, not sorted by percent.** This is a deliberate
 departure from `SPEC.md` §7.2. Claude Code displays session → weekly →
 model-scoped, which is `limits[]` order; sorting descending would reorder the
-display this POC exists to reproduce.
+display the CLI exists to reproduce.
 
 **Labels**, derived from `kind` and `scope_model`:
 
@@ -349,7 +361,7 @@ motivated the one-shot design.
 - Read-only. Never writes to `~/.claude/` or `~/.claude.json`.
 - `accountUuid` is never read, rendered, logged, or serialised. Enforced by a
   test asserting its absence from both rendered text and `--json` output.
-- No transcript access at all in this POC, so conversation text, file contents,
+- No transcript access at all in the CLI, so conversation text, file contents,
   and any secrets they contain are out of reach by construction.
 - No network calls, no credentials, nothing to leak.
 - This spec lives beside its implementation (`claude_usage/ui/cli/`) and is
@@ -396,7 +408,7 @@ edge cases that matter.
 
 ## 12. Deviations from `SPEC.md`
 
-| `SPEC.md` | This POC | Reason |
+| `SPEC.md` | This CLI | Reason |
 |---|---|---|
 | §7.2 sort bars by percent descending | Source order | Reproduces the actual display order |
 | §6.2 per-file cursors for incremental tailing | Not implemented | No transcript reads; also see below |

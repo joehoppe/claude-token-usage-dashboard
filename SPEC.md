@@ -11,6 +11,17 @@ single wxPython codebase.
 > All schema details, field names, paths, and sample values in this document
 > were verified against a live machine on 2026-08-05 (290 transcript files,
 > 14,751 usage records). See [Appendix A](#appendix-a--verified-observations).
+>
+> **Two maintained surfaces.** This spec describes the wx desktop widget. A
+> one-shot CLI
+> ([`claude_usage/ui/cli/`](claude_usage/ui/cli/2026-08-05-cli-quota-poc-design.md))
+> reads the same quota cache through the same core and is a permanent,
+> actively maintained driver — not a stepping-stone that goes away once the
+> widget ships. **Any change to the `domain/` / `application/` /
+> `infrastructure/` core should be checked against both drivers for feature
+> parity**, or the divergence recorded explicitly. See
+> [`claude_usage/ui/app/2026-08-10-quota-app-design.md`](claude_usage/ui/app/2026-08-10-quota-app-design.md)
+> §7 for the policy and its mechanics.
 
 ---
 
@@ -172,6 +183,13 @@ Supplementary read-only context from the same file:
      │ PricingTable │
      └──────────────┘
 ```
+
+This diagram is the wx driver. `claude_usage/ui/cli/` is a second, thinner
+driver over the same `TranscriptReader`/`QuotaReader`/`PricingTable` stack — a
+single synchronous pass instead of `PollerThread`, and quota-only today (no
+token/cost panel yet in either driver). It is a permanent sibling, not scaffolding
+for this one; see the note above and the CLI's own spec for its data-flow
+diagram.
 
 ### 5.1 Threading
 

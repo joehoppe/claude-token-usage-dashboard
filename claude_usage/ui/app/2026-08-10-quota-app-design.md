@@ -2,13 +2,17 @@
 
 **Status:** Approved
 **Date:** 2026-08-10
+**Amended:** 2026-08-11 — the CLI is retained as a permanently maintained
+sibling driver rather than removed on ship; see §7.
 **Author:** Joseph Hoppe (drafted with Claude Code)
-**Supersedes:** `claude_usage/ui/cli/2026-08-05-cli-quota-poc-design.md`
+**Sibling spec:** [`claude_usage/ui/cli/2026-08-05-cli-quota-poc-design.md`](../cli/2026-08-05-cli-quota-poc-design.md)
+— the CLI this spec complements, not supersedes; see §7.
 **Parent:** [`SPEC.md`](../../../SPEC.md)
 
-Replaces the one-shot CLI with an always-on-top wxPython window showing Claude
-Code subscription quota. Quota only — the token/cost panel from `SPEC.md` §7.4
-is deferred to v2.
+Adds an always-on-top wxPython window showing Claude Code subscription quota,
+as a second permanently maintained driver alongside the existing one-shot CLI
+(§7 — the CLI is not removed). Quota only — the token/cost panel from
+`SPEC.md` §7.4 is deferred to v2, for both drivers.
 
 ---
 
@@ -57,6 +61,10 @@ infrastructure/  claude_json.py · config.py · clock.py   (implement the ports)
 The composition root builds `ClaudeJsonQuotaSource`, `SystemClock`,
 `TomlConfigSource`, injects them into `UsageService`, and hands the service to
 `PollerThread`. No inner layer imports `wx`.
+
+`ui/cli/` is the pre-existing sibling driver at the same ring, unchanged by
+this spec except that it now shares `ui/shared/format.py` (new) with
+`ui/app/presenter.py` — see §7.2.
 
 ### 2.1 Domain changes
 
@@ -210,15 +218,18 @@ Rules:
   rendering an unrecognized severity as safe.
 - Severity is never derived from `percent` — `SPEC.md` §7.2. The presenter emits
   a semantic name; `panels.py` owns the `wx.Colour` values.
-- `label` reuses the CLI's `label_for` logic: `weekly_scoped` + scope model →
-  "Weekly <Model>"; known kinds → friendly names; **unknown kinds fall back to
+- `label` reuses `label_for`: `weekly_scoped` + scope model → "Weekly
+  `{scope_model}`"; known kinds → friendly names; **unknown kinds fall back to
   title-cased text rather than raising** — new limit kinds must render.
-- `age_text` uses the CLI's `coarse()` formatting, always shown.
+- `age_text` uses `coarse()` formatting, always shown.
 - `stale=True` greys the bars and appends "· STALE" to `age_text`.
 
-`label_for` and `coarse` move from `ui/cli/render.py` into the presenter before
-the CLI is deleted. The ANSI colour codes and bar glyphs do not move — they die
-with the CLI.
+`label_for` and `coarse` move out of `ui/cli/render.py` into a new
+`claude_usage/ui/shared/format.py` — pure functions, no `wx`, no ANSI — imported
+by both `ui/cli/render.py` and this presenter (see §7.2). They do not die with
+the CLI, because the CLI does not die. The ANSI colour codes and bar glyphs stay
+behind in `ui/cli/render.py`; `panels.py` defines its own `wx.Colour` mapping
+rather than sharing one, since severity→colour is a per-driver rendering choice.
 
 ### 4.1 The four no-data states
 
@@ -280,6 +291,7 @@ Strict TDD: a failing test precedes each implementation step.
 | `test_infrastructure_claude_json.py` (extend) | Each of the four outcomes from a real fixture: absent path, `{}`, invalid JSON, valid data. `PermissionError` via monkeypatched `read_text`. Empty `limits[]` → reading, not error. Bad `fetchedAtMs`. Malformed individual limit entries skipped |
 | `test_infrastructure_config.py` (new) | Absent, valid, malformed TOML, wrong types, out-of-range, unknown keys |
 | `test_ui_presenter.py` (new) | Headline picks the worst bar, not the aggregate (the 39%-vs-66% case, `SPEC.md` §7.2); remaining vs percent; sort order; unknown severity → `critical`; unknown `kind` renders; all four messages; stale greying; promo + config notices |
+| `test_ui_shared_format.py` (new) | `label_for` kind→label mapping, incl. unknown-kind fallback; `coarse()` bucket boundaries — covered once here rather than duplicated in the CLI and presenter suites |
 | `test_architecture.py` (extend) | `ui/app/` unimported by any inner layer; `domain/` imports stdlib only; no `wx` import outside `ui/app/` |
 
 No test instantiates `wx`. `frame.py`, `panels.py`, and `poller.py` are verified
@@ -290,25 +302,63 @@ Fixtures under `tests/fixtures/` are kept and reused.
 
 ---
 
-## 7. CLI removal
+## 7. CLI parity
 
-The CLI is deprecated on approval of this spec and **removed in the same commit
-that ships the app** — v1 reaches full parity with it on day one, since the CLI
-also only reads quota. Headless verification lives in the test suite, not in a
-shipped entrypoint.
+**The CLI is not removed.** It ships alongside the app as a second,
+permanently maintained driver over the same `domain/` / `application/` /
+`infrastructure/` core — see `SPEC.md`'s note on maintained surfaces and the
+CLI's own spec. Nothing under `claude_usage/ui/cli/` or
+`tests/test_ui_cli_main.py` / `tests/test_ui_cli_render.py` is deleted by this
+spec.
 
-Deleted: `claude_usage/ui/cli/` (including
-`2026-08-05-cli-quota-poc-design.md`, per `AGENTS.md` — the spec goes when the
-feature goes) and `tests/test_ui_cli_main.py`, `tests/test_ui_cli_render.py`.
+### 7.1 What "parity" means
 
-`pyproject.toml`: the `claude-usage` script repoints to
-`claude_usage.ui.app.main:main`; `description` changes from "One-shot CLI
-showing Claude Code quota usage from the local cache" to reflect the window.
-`wxPython` is added to `dependencies` (approved in `AGENTS.md`; no attribution
-obligation triggers while distribution is source/pip only).
+Every change that adds or alters a capability in `domain/`, `application/`, or
+`infrastructure/` — a new `QuotaUnavailable` variant, a new config knob, a
+changed staleness rule, a new no-data message — must reach **both** drivers
+before it merges: `ui/cli/render.py` + `ui/cli/main.py` on one side,
+`ui/app/presenter.py` + the wx panels on the other.
 
-`SPEC.md` gains a short status note recording that v1 is quota-only and that
-§10.1–§10.4 are resolved as in §1.1 above.
+Parity is about capability, not identical UX. It does **not** mean the two
+surfaces behave the same way — the CLI stays one-shot and synchronous; the app
+stays a live-polling window. Existing, permanent divergences (`--json`, the
+background poller, `--path`, window persistence) are not parity gaps and don't
+need re-justifying on every change. A *new* divergence — a capability that
+reaches one driver but is deliberately withheld from the other — gets recorded
+in a deviations table, the pattern the CLI spec already uses against
+`SPEC.md` (its §12).
+
+### 7.2 Shared formatting
+
+`label_for` and `coarse()` move out of `ui/cli/render.py` into
+`claude_usage/ui/shared/format.py` (new) rather than being copied into the
+presenter — see §4. Both drivers import from there; neither imports the other,
+and the shared module sits inside the UI ring (`ui/cli` and `ui/app` are
+siblings, not inner/outer), so this adds no cross-layer dependency. The ANSI
+colour codes and unicode/ASCII bar glyphs stay CLI-only; the wx colour and
+drawing logic stays app-only.
+
+### 7.3 Packaging
+
+`pyproject.toml` gains a second entry point rather than repointing the
+existing one:
+
+```toml
+[project.scripts]
+claude-usage = "claude_usage.ui.cli.main:main"
+claude-usage-app = "claude_usage.ui.app.main:main"
+```
+
+`description` is broadened to cover both surfaces rather than naming just the
+CLI. `wxPython` is added to `dependencies` (approved in `AGENTS.md`; no
+attribution obligation triggers while distribution is source/pip only).
+
+### 7.4 Docs
+
+`SPEC.md` gains a short status note recording that v1 of the app is
+quota-only, that §10.1–§10.4 are resolved as in §1.1 above, and that the CLI
+remains a maintained sibling driver. `README.md` documents both entry points
+once the app ships.
 
 ---
 
