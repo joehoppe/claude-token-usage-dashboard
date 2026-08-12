@@ -1,12 +1,14 @@
 [project]
 name = "claude-usage"
 version = "0.1.0"
-description = "One-shot CLI showing Claude Code quota usage from the local cache"
-requires-python = ">=3.10"
+description = "CLI and desktop-widget views of Claude Code subscription quota"
+requires-python = ">=3.11"
 license = { text = "MIT" }
+dependencies = ["wxPython"]
 
 [project.scripts]
 claude-usage = "claude_usage.ui.cli.main:main"
+claude-usage-app = "claude_usage.ui.app.main:main"
 
 [build-system]
 requires = ["setuptools>=68"]
