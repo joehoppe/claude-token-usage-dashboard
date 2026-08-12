@@ -17,12 +17,31 @@ def test_renders_fixture_and_exits_zero(capsys):
     assert "as of" in out
 
 
-def test_missing_cache_exits_one_with_stderr(tmp_path, capsys):
+def test_no_file_exits_one_with_stderr(tmp_path, capsys):
     code = main(["--path", str(tmp_path / "missing.json")])
     out, err = capsys.readouterr()
     assert code == 1
     assert out == ""
-    assert "No quota cache found — run Claude Code once to populate it." in err
+    assert err.strip() == "Claude Code data not found"
+
+
+def test_no_quota_key_exits_one_with_stderr(tmp_path, capsys):
+    path = tmp_path / "claude.json"
+    path.write_text(json.dumps({"oauthAccount": {}}), encoding="utf-8")
+    code = main(["--path", str(path)])
+    out, err = capsys.readouterr()
+    assert code == 1
+    assert err.strip() == "No quota data cached yet — run Claude Code once"
+
+
+def test_read_error_exits_one_with_detail_in_stderr(tmp_path, capsys):
+    path = tmp_path / "claude.json"
+    path.write_text("{not json", encoding="utf-8")
+    code = main(["--path", str(path)])
+    out, err = capsys.readouterr()
+    assert code == 1
+    assert "Couldn't read quota data" in err
+    assert "JSONDecodeError" in err
 
 
 def test_stale_reading_still_exits_zero(tmp_path, capsys):
@@ -44,7 +63,9 @@ def test_json_output_is_whitelisted_snapshot(capsys):
     out, _ = capsys.readouterr()
     assert code == 0
     payload = json.loads(out)
-    assert set(payload) == {"captured_at", "is_stale", "quota"}
+    assert set(payload) == {"captured_at", "is_stale", "quota", "unavailable", "detail"}
+    assert payload["unavailable"] is None
+    assert payload["detail"] is None
     kinds = [limit["kind"] for limit in payload["quota"]["limits"]]
     assert kinds == ["session", "weekly_all", "weekly_scoped"]
     assert "accountUuid" not in out

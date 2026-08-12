@@ -2,7 +2,12 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from claude_usage.domain.quota import LimitReading, QuotaReading, QuotaSnapshot
+from claude_usage.domain.quota import (
+    LimitReading,
+    QuotaReading,
+    QuotaSnapshot,
+    QuotaUnavailable,
+)
 from claude_usage.ui.cli.render import bar, render, render_row
 
 UTC = timezone.utc
@@ -136,6 +141,21 @@ def test_render_requires_quota():
     snapshot = QuotaSnapshot(captured_at=NOW, quota=None, is_stale=True)
     with pytest.raises(ValueError):
         render(snapshot)
+
+
+def test_render_read_error_with_fallback_appends_note():
+    reading = QuotaReading(
+        measured_at=NOW - timedelta(hours=1), limits=(make_limit(),), promo_notices=()
+    )
+    snapshot = QuotaSnapshot(
+        captured_at=NOW,
+        quota=reading,
+        is_stale=True,
+        unavailable=QuotaUnavailable.READ_ERROR,
+        detail="JSONDecodeError",
+    )
+    output = render(snapshot)
+    assert "showing last known values (JSONDecodeError)" in output
 
 
 # --- golden ---------------------------------------------------------------

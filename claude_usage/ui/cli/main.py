@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 from claude_usage.application.usage import UsageService
-from claude_usage.domain.quota import QuotaSnapshot
+from claude_usage.domain.quota import QuotaSnapshot, QuotaUnavailable
 from claude_usage.infrastructure.claude_json import ClaudeJsonQuotaSource
 from claude_usage.infrastructure.clock import SystemClock
 from claude_usage.ui.cli.render import render
@@ -37,6 +37,12 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+_NO_DATA_MESSAGES = {
+    QuotaUnavailable.NO_FILE: "Claude Code data not found",
+    QuotaUnavailable.NO_QUOTA_KEY: "No quota data cached yet — run Claude Code once",
+}
+
+
 def snapshot_to_dict(snapshot: QuotaSnapshot) -> dict:
     """Field whitelist — a raw file passthrough could leak accountUuid."""
     quota = None
@@ -63,6 +69,8 @@ def snapshot_to_dict(snapshot: QuotaSnapshot) -> dict:
         "captured_at": snapshot.captured_at.isoformat(),
         "is_stale": snapshot.is_stale,
         "quota": quota,
+        "unavailable": snapshot.unavailable.value if snapshot.unavailable else None,
+        "detail": snapshot.detail,
     }
 
 
@@ -71,10 +79,13 @@ def main(argv: list[str] | None = None) -> int:
     service = UsageService(ClaudeJsonQuotaSource(args.path), SystemClock())
     snapshot = service.snapshot()
     if snapshot.quota is None:
-        print(
-            "No quota cache found — run Claude Code once to populate it.",
-            file=sys.stderr,
-        )
+        if snapshot.unavailable in _NO_DATA_MESSAGES:
+            message = _NO_DATA_MESSAGES[snapshot.unavailable]
+        else:
+            message = "Couldn't read quota data"
+            if snapshot.detail:
+                message += f" ({snapshot.detail})"
+        print(message, file=sys.stderr)
         return 1
     if args.as_json:
         print(json.dumps(snapshot_to_dict(snapshot), indent=2))

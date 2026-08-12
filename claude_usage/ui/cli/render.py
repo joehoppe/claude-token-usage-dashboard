@@ -3,7 +3,12 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from claude_usage.domain.quota import LimitReading, QuotaSnapshot, time_remaining
+from claude_usage.domain.quota import (
+    LimitReading,
+    QuotaSnapshot,
+    QuotaUnavailable,
+    time_remaining,
+)
 from claude_usage.ui.shared.format import coarse, label_for
 
 BAR_WIDTH = 15
@@ -61,6 +66,9 @@ def render(
             )
     else:
         lines.append("  no limits reported")
+    if snapshot.unavailable is QuotaUnavailable.READ_ERROR and snapshot.detail:
+        lines.append("")
+        lines.append(f"  note: showing last known values ({snapshot.detail})")
     if quota.promo_notices:
         lines.append("")
         lines.extend(f"  {notice}" for notice in quota.promo_notices)
