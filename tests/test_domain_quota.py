@@ -8,6 +8,7 @@ from claude_usage.domain.quota import (
     LimitReading,
     QuotaReading,
     QuotaSnapshot,
+    QuotaUnavailable,
     time_remaining,
 )
 
@@ -90,3 +91,27 @@ def test_entities_are_frozen():
     snapshot = QuotaSnapshot(captured_at=MEASURED, quota=None, is_stale=True)
     with pytest.raises(dataclasses.FrozenInstanceError):
         snapshot.is_stale = False
+
+
+def test_quota_unavailable_members():
+    assert QuotaUnavailable.NO_FILE.value == "no_file"
+    assert QuotaUnavailable.NO_QUOTA_KEY.value == "no_quota_key"
+    assert QuotaUnavailable.READ_ERROR.value == "read_error"
+
+
+def test_snapshot_unavailable_and_detail_default_to_none():
+    snapshot = QuotaSnapshot(captured_at=MEASURED, quota=None, is_stale=True)
+    assert snapshot.unavailable is None
+    assert snapshot.detail is None
+
+
+def test_snapshot_accepts_unavailable_and_detail():
+    snapshot = QuotaSnapshot(
+        captured_at=MEASURED,
+        quota=None,
+        is_stale=True,
+        unavailable=QuotaUnavailable.READ_ERROR,
+        detail="JSONDecodeError",
+    )
+    assert snapshot.unavailable is QuotaUnavailable.READ_ERROR
+    assert snapshot.detail == "JSONDecodeError"

@@ -3,8 +3,15 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from enum import Enum
 
 STALE_AFTER = timedelta(minutes=15)
+
+
+class QuotaUnavailable(Enum):
+    NO_FILE = "no_file"            # ~/.claude.json absent
+    NO_QUOTA_KEY = "no_quota_key"  # file readable, cachedUsageUtilization absent/invalid
+    READ_ERROR = "read_error"      # OSError, JSONDecodeError, unusable fetchedAtMs
 
 
 @dataclass(frozen=True)
@@ -44,6 +51,8 @@ class QuotaSnapshot:
     captured_at: datetime
     quota: QuotaReading | None
     is_stale: bool
+    unavailable: QuotaUnavailable | None = None
+    detail: str | None = None      # e.g. "JSONDecodeError"; never a file path or payload
 
 
 def time_remaining(resets_at: datetime | None, now: datetime) -> timedelta | None:
