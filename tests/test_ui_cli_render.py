@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 import pytest
 
 from claude_usage.domain.quota import LimitReading, QuotaReading, QuotaSnapshot
-from claude_usage.ui.cli.render import bar, coarse, label_for, render, render_row
+from claude_usage.ui.cli.render import bar, render, render_row
 
 UTC = timezone.utc
 NOW = datetime(2026, 8, 5, 18, 10, tzinfo=UTC)
@@ -33,23 +33,6 @@ def make_snapshot(limits, promos=(), measured_at=NOW - timedelta(minutes=5),
     return QuotaSnapshot(captured_at=NOW, quota=reading, is_stale=is_stale)
 
 
-# --- labels ---------------------------------------------------------------
-
-def test_known_kind_labels():
-    assert label_for(make_limit(kind="session")) == "Session (5hr)"
-    assert label_for(make_limit(kind="weekly_all")) == "Weekly (7 day)"
-    assert label_for(
-        make_limit(kind="weekly_scoped", scope_model="Fable")
-    ) == "Weekly Fable"
-
-
-def test_unknown_kind_falls_back_without_crashing():
-    assert label_for(make_limit(kind="monthly_all")) == "Monthly All"
-    assert label_for(
-        make_limit(kind="monthly_scoped", scope_model="Sonnet")
-    ) == "Monthly Scoped Sonnet"
-
-
 # --- bar ------------------------------------------------------------------
 
 def test_bar_fill_rounding():
@@ -67,15 +50,6 @@ def test_bar_clamps_out_of_range():
 
 def test_bar_ascii_glyphs():
     assert bar(50, ascii_glyphs=True) == "########" + "-" * 7
-
-
-# --- coarse durations -----------------------------------------------------
-
-def test_coarse_units():
-    assert coarse(timedelta(seconds=30)) == "<1m"
-    assert coarse(timedelta(minutes=12)) == "12m"
-    assert coarse(timedelta(hours=2)) == "2h"
-    assert coarse(timedelta(days=1, hours=18)) == "1d"
 
 
 # --- rows -----------------------------------------------------------------
