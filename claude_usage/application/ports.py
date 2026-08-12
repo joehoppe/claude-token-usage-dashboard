@@ -1,10 +1,11 @@
 """Ports the application ring declares; infrastructure conforms structurally."""
 from __future__ import annotations
 
-from datetime import datetime
+from dataclasses import dataclass
+from datetime import datetime, timedelta
 from typing import Protocol
 
-from claude_usage.domain.quota import QuotaReading, QuotaUnavailable
+from claude_usage.domain.quota import STALE_AFTER, QuotaReading, QuotaUnavailable
 
 
 class QuotaSource(Protocol):
@@ -14,3 +15,14 @@ class QuotaSource(Protocol):
 
 class Clock(Protocol):
     def now(self) -> datetime: ...
+
+
+@dataclass(frozen=True)
+class Config:
+    poll_seconds: int = 10
+    stale_after: timedelta = STALE_AFTER
+    warnings: tuple[str, ...] = ()
+
+
+class ConfigSource(Protocol):
+    def read_config(self) -> Config: ...
