@@ -4,11 +4,12 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Protocol
 
-from claude_usage.domain.quota import QuotaReading
+from claude_usage.domain.quota import QuotaReading, QuotaUnavailable
 
 
 class QuotaSource(Protocol):
-    def read_quota(self) -> QuotaReading | None: ...
+    def read_quota(self) -> QuotaReading | QuotaUnavailable: ...
+    def read_error_detail(self) -> str | None: ...
 
 
 class Clock(Protocol):

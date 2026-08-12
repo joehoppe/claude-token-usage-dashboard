@@ -5,36 +5,55 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-from claude_usage.domain.quota import LimitReading, QuotaReading
+from claude_usage.domain.quota import LimitReading, QuotaReading, QuotaUnavailable
 
 
 class ClaudeJsonQuotaSource:
     def __init__(self, path: Path | None = None) -> None:
         # ~/.claude.json is the sibling of ~/.claude/, not a file inside it.
         self._path = path if path is not None else Path.home() / ".claude.json"
+        self._last_error_detail: str | None = None
 
-    def read_quota(self) -> QuotaReading | None:
+    def read_quota(self) -> QuotaReading | QuotaUnavailable:
+        self._last_error_detail = None
         try:
-            raw = json.loads(self._path.read_text(encoding="utf-8"))
-        except (OSError, ValueError):
-            return None
+            text = self._path.read_text(encoding="utf-8")
+        except (FileNotFoundError, NotADirectoryError):
+            return QuotaUnavailable.NO_FILE
+        except OSError as exc:
+            return self._fail(exc)
+
+        try:
+            raw = json.loads(text)
+        except json.JSONDecodeError as exc:
+            return self._fail(exc)
         if not isinstance(raw, dict):
-            return None
+            return self._fail(ValueError("root is not an object"))
+
         cached = raw.get("cachedUsageUtilization")
         if not isinstance(cached, dict):
-            return None
+            return QuotaUnavailable.NO_QUOTA_KEY
+
         fetched_at_ms = cached.get("fetchedAtMs")
         if isinstance(fetched_at_ms, bool) or not isinstance(fetched_at_ms, (int, float)):
-            return None
+            return self._fail(ValueError("fetchedAtMs missing or non-numeric"))
         try:
             measured_at = datetime.fromtimestamp(fetched_at_ms / 1000, tz=timezone.utc)
-        except (ValueError, OverflowError, OSError):
-            return None
+        except (ValueError, OverflowError, OSError) as exc:
+            return self._fail(exc)
+
         return QuotaReading(
             measured_at=measured_at,
             limits=_parse_limits(cached),
             promo_notices=_parse_promos(raw),
         )
+
+    def read_error_detail(self) -> str | None:
+        return self._last_error_detail
+
+    def _fail(self, exc: Exception) -> QuotaUnavailable:
+        self._last_error_detail = type(exc).__name__
+        return QuotaUnavailable.READ_ERROR
 
 
 def _parse_limits(cached: dict) -> tuple[LimitReading, ...]:
