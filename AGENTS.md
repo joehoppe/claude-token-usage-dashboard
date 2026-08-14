@@ -46,9 +46,14 @@ Rules:
   `application/`, `infrastructure/`, `ui/`) so a violating import is obvious in
   review.
 
-## Open Source
+## Licensing
 
-This should only implement MIT license packages. Prompt if you want to consider any others
+This should only implement packages using the following licenses:
+
+- MIT
+- Apache-2.0
+
+If you want to propose using a package that is not listed above, ask for explicit approval before proceeding
 
 ### Approved exceptions
 
