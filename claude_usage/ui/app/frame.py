@@ -12,6 +12,8 @@ from claude_usage.ui.app import theme
 from claude_usage.ui.app.panels import QuotaPanel
 from claude_usage.ui.app.presenter import QuotaView
 
+_MIN_WIDTH = 240
+
 
 class QuotaFrame(wx.Frame):
     def __init__(self, on_close: Callable[[], None]) -> None:
@@ -30,7 +32,22 @@ class QuotaFrame(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self._handle_close)
 
     def show_view(self, view: QuotaView) -> None:
+        self._fit_to_content(view)
         self.panel.render(view)
+
+    def _fit_to_content(self, view: QuotaView) -> None:
+        """Grow the window when a view needs more room than it has, and hold
+        that as the minimum. The constructor's height is only a starting
+        guess — bar count varies per view, and the window chrome eats height
+        the frame size does not account for, so a fixed height clips.
+
+        Never shrinks: a size the user chose deliberately must stick.
+        """
+        needed = self.panel.content_height(view)
+        width, height = self.GetClientSize()
+        self.SetMinClientSize((_MIN_WIDTH, needed))
+        if height < needed:
+            self.SetClientSize((width, needed))
 
     def _handle_close(self, event: wx.CloseEvent) -> None:
         self._on_close()
