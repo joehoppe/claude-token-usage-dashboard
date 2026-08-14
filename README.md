@@ -1,7 +1,7 @@
 # claude-usage
 
-One-shot CLI showing Claude Code quota usage from the local
-`~/.claude.json` cache.
+Claude Code quota usage from the local `~/.claude.json` cache, as a
+one-shot CLI or an always-on-top desktop window.
 
 ## Install
 
@@ -9,11 +9,12 @@ One-shot CLI showing Claude Code quota usage from the local
 pip install -e .
 ```
 
-This puts the `claude-usage` command on your `PATH`. You can also run it
-without installing, from the repo root:
+This puts `claude-usage` (CLI) and `claude-usage-app` (desktop window) on
+your `PATH`. You can also run either without installing, from the repo root:
 
 ```bash
 python -m claude_usage.ui.cli.main
+python -m claude_usage.ui.app.main
 ```
 
 ## Usage
@@ -55,6 +56,51 @@ $env:PYTHONUTF8 = "1"
 ```
 
 `--json` is unaffected by this either way.
+
+## Desktop app
+
+The same reading in a small always-on-top window, refreshed in the
+background. From the repo root:
+
+```bash
+python -m claude_usage.ui.app.main
+```
+
+or, after `pip install -e .`, just `claude-usage-app`.
+
+The window is resizable and grows to fit its content, but never shrinks
+below a size you chose. It stays above other windows and never steals focus
+when it refreshes — a refresh only repaints. Closing it stops the background
+poller and exits.
+
+The console encoding note above does not apply here: the window draws its
+own text, so no `-X utf8` is needed.
+
+### App flags
+
+| Flag       | Effect                                               |
+|------------|------------------------------------------------------|
+| `--path`   | read an alternate `.claude.json` (fixtures, testing) |
+| `--config` | read an alternate `config.toml` (fixtures, testing)  |
+
+### Configuration
+
+Optional, read once at startup from
+`~/.config/claude-usage/config.toml` (on Windows,
+`C:\Users\<you>\.config\claude-usage\config.toml`). No file means defaults,
+silently. An unreadable or malformed file, or an out-of-range value, also
+falls back to defaults but adds a warning line to the window rather than
+failing.
+
+| Key                   | Default | Range  | Effect                                    |
+|-----------------------|---------|--------|-------------------------------------------|
+| `poll_seconds`        | 10      | 1–600  | seconds between background refreshes      |
+| `stale_after_minutes` | 15      | 1–1440 | reading age at which the view marks STALE |
+
+```toml
+poll_seconds = 30
+stale_after_minutes = 20
+```
 
 ## Development
 
