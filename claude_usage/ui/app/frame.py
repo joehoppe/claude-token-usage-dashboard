@@ -8,6 +8,7 @@ from typing import Callable
 
 import wx
 
+from claude_usage.ui.app import theme
 from claude_usage.ui.app.panels import QuotaPanel
 from claude_usage.ui.app.presenter import QuotaView
 
@@ -17,9 +18,10 @@ class QuotaFrame(wx.Frame):
         super().__init__(
             None,
             title="Claude Usage",
-            size=(320, 180),
+            size=(356, 220),
             style=wx.DEFAULT_FRAME_STYLE | wx.STAY_ON_TOP,
         )
+        self.SetBackgroundColour(wx.Colour(*theme.BACKGROUND))
         self._on_close = on_close
         self.panel = QuotaPanel(self)
         sizer = wx.BoxSizer(wx.VERTICAL)

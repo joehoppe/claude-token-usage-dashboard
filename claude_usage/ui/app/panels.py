@@ -1,20 +1,25 @@
 """Draws a QuotaView with wx.PaintDC rectangles (wx.Gauge can't be coloured
 per-severity portably). Places strings and rectangles; computes nothing —
 all display decisions were already made by presenter.present().
+
+Colors come from theme.py and are painted explicitly so the window looks the
+same on every platform instead of inheriting OS widget colors.
 """
 from __future__ import annotations
 
 import wx
 
+from claude_usage.ui.app import theme
 from claude_usage.ui.app.presenter import BarView, QuotaView
 
+_BACKGROUND = wx.Colour(*theme.BACKGROUND)
+_TEXT_PRIMARY = wx.Colour(*theme.TEXT_PRIMARY)
+_TEXT_SECONDARY = wx.Colour(*theme.TEXT_SECONDARY)
+_TRACK_COLOR = wx.Colour(*theme.TRACK)
+_STALE_COLOR = wx.Colour(*theme.STALE_FILL)
 _SEVERITY_COLORS = {
-    "normal": wx.Colour(60, 179, 60),
-    "warning": wx.Colour(224, 168, 0),
-    "critical": wx.Colour(200, 50, 50),
+    severity: wx.Colour(*rgb) for severity, rgb in theme.SEVERITY_FILLS.items()
 }
-_STALE_COLOR = wx.Colour(150, 150, 150)
-_TRACK_COLOR = wx.Colour(230, 230, 230)
 _BAR_HEIGHT = 18
 _ROW_HEIGHT = 40
 _MARGIN = 8
@@ -23,6 +28,7 @@ _MARGIN = 8
 class QuotaPanel(wx.Panel):
     def __init__(self, parent: wx.Window) -> None:
         super().__init__(parent)
+        self.SetBackgroundColour(_BACKGROUND)
         self._view: QuotaView | None = None
         self.Bind(wx.EVT_PAINT, self._on_paint)
 
@@ -32,10 +38,11 @@ class QuotaPanel(wx.Panel):
 
     def _on_paint(self, event: wx.PaintEvent) -> None:
         dc = wx.PaintDC(self)
+        dc.SetBackground(wx.Brush(_BACKGROUND))
+        dc.Clear()
         view = self._view
         if view is None:
             return
-        dc.Clear()
         y = self._draw_header(dc, view)
         if view.message is not None:
             self._draw_message(dc, view, y)
@@ -45,17 +52,25 @@ class QuotaPanel(wx.Panel):
         self._draw_footer(dc, view, y)
 
     def _draw_header(self, dc: wx.DC, view: QuotaView) -> int:
-        dc.SetTextForeground(wx.BLACK)
+        base_font = self.GetFont()
+        dc.SetFont(base_font.Bold())
+        dc.SetTextForeground(_TEXT_PRIMARY)
         dc.DrawText(view.headline, _MARGIN, _MARGIN)
+        dc.SetFont(base_font)
+        dc.SetTextForeground(_TEXT_SECONDARY)
         dc.DrawText(view.age_text, _MARGIN, _MARGIN + 18)
         return _MARGIN + 44
 
     def _draw_message(self, dc: wx.DC, view: QuotaView, y: int) -> None:
+        dc.SetTextForeground(_TEXT_PRIMARY)
         dc.DrawText(view.message, _MARGIN, y)
         if view.message_detail:
+            dc.SetTextForeground(_TEXT_SECONDARY)
             dc.DrawText(view.message_detail, _MARGIN, y + 18)
 
-    def _draw_bar(self, dc: wx.DC, bar: BarView, y: int, *, greyed: bool) -> int:
+    def _draw_bar(
+        self, dc: wx.DC, bar: BarView, y: int, *, greyed: bool
+    ) -> int:
         width = max(0, self.GetClientSize().width - 2 * _MARGIN)
         filled = int(width * max(0, min(100, bar.percent)) / 100)
         color = _STALE_COLOR if greyed else _SEVERITY_COLORS.get(
@@ -72,12 +87,12 @@ class QuotaPanel(wx.Panel):
             label += "  ●"
         if bar.resets_text:
             label += f"  {bar.resets_text}"
-        dc.SetTextForeground(wx.BLACK)
+        dc.SetTextForeground(_TEXT_PRIMARY)
         dc.DrawText(label, _MARGIN, y + _BAR_HEIGHT + 2)
         return y + _ROW_HEIGHT
 
     def _draw_footer(self, dc: wx.DC, view: QuotaView, y: int) -> None:
-        dc.SetTextForeground(wx.Colour(90, 90, 90))
+        dc.SetTextForeground(_TEXT_SECONDARY)
         for notice in view.notices:
             dc.DrawText(notice, _MARGIN, y)
             y += 16
