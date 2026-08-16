@@ -236,7 +236,7 @@ rather than sharing one, since severity→colour is a per-driver rendering choic
 | State | `message` | `bars` |
 |---|---|---|
 | `NO_FILE` | "Claude Code data not found" | empty |
-| `NO_QUOTA_KEY` | "No quota data cached yet — run Claude Code once" | empty |
+| `NO_QUOTA_KEY` | "No quota data cached yet — click Refresh" | empty |
 | `READ_ERROR`, no prior reading | "Couldn't read quota data" (`detail` → `message_detail`) | empty |
 | `READ_ERROR`, prior reading | `None` | from the prior reading, `stale=True`, `detail` appended to `notices` |
 

@@ -95,7 +95,7 @@ def test_no_quota_key_message():
         unavailable=QuotaUnavailable.NO_QUOTA_KEY,
     )
     view = present(snapshot, Config())
-    assert view.message == "No quota data cached yet — run Claude Code once"
+    assert view.message == "No quota data cached yet — click Refresh"
 
 
 def test_read_error_no_history_message_carries_detail():

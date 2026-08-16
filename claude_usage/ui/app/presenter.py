@@ -19,7 +19,7 @@ _SEVERITY = {"normal": "normal", "warning": "warning"}
 
 _NO_DATA_MESSAGES = {
     QuotaUnavailable.NO_FILE: "Claude Code data not found",
-    QuotaUnavailable.NO_QUOTA_KEY: "No quota data cached yet — run Claude Code once",
+    QuotaUnavailable.NO_QUOTA_KEY: "No quota data cached yet — click Refresh",
 }
 
 _READ_ERROR_MESSAGE = "Couldn't read quota data"
