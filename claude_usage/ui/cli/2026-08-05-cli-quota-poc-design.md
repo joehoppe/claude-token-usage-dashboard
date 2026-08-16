@@ -347,7 +347,7 @@ main()
 | Rendered successfully | Print to stdout | 0 |
 | Stale reading | Renders normally, marked `STALE` | 0 |
 | `limits[]` present but empty | Header, age line, `no limits reported` | 0 |
-| No usable cache | `No quota cache found — run Claude Code once to populate it.` to **stderr** | 1 |
+| No usable cache | `No quota data cached yet — open /usage in Claude Code` to **stderr** | 1 |
 | Unknown `kind` | Fallback label, row renders | 0 |
 | Unparseable `resets_at` | Drop that row's countdown, keep its bar | 0 |
 | `percent` outside 0–100 | Clamp the bar, print the raw number | 0 |

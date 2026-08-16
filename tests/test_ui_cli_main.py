@@ -31,7 +31,7 @@ def test_no_quota_key_exits_one_with_stderr(tmp_path, capsys):
     code = main(["--path", str(path)])
     out, err = capsys.readouterr()
     assert code == 1
-    assert err.strip() == "No quota data cached yet — run Claude Code once"
+    assert err.strip() == "No quota data cached yet — open /usage in Claude Code"
 
 
 def test_read_error_exits_one_with_detail_in_stderr(tmp_path, capsys):

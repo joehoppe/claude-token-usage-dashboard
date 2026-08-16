@@ -39,7 +39,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 _NO_DATA_MESSAGES = {
     QuotaUnavailable.NO_FILE: "Claude Code data not found",
-    QuotaUnavailable.NO_QUOTA_KEY: "No quota data cached yet — run Claude Code once",
+    QuotaUnavailable.NO_QUOTA_KEY: "No quota data cached yet — open /usage in Claude Code",
 }
 
 
