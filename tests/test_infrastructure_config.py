@@ -61,3 +61,47 @@ def test_unknown_keys_ignored_without_warning(tmp_path):
     config = TomlConfigSource(path).read_config()
     assert config.poll_seconds == 20
     assert config.warnings == ()
+
+
+def test_refresh_timeout_valid_override(tmp_path):
+    path = write_toml(tmp_path, "refresh_timeout_seconds = 120\n")
+    config = TomlConfigSource(path).read_config()
+    assert config.refresh_timeout_seconds == 120
+    assert config.warnings == ()
+
+
+def test_refresh_timeout_out_of_range_defaults_and_warns(tmp_path):
+    path = write_toml(tmp_path, "refresh_timeout_seconds = 4\n")
+    config = TomlConfigSource(path).read_config()
+    assert config.refresh_timeout_seconds == 60
+    assert len(config.warnings) == 1
+    assert "refresh_timeout_seconds" in config.warnings[0]
+
+
+def test_claude_executable_absent_is_none(tmp_path):
+    path = write_toml(tmp_path, "poll_seconds = 20\n")
+    config = TomlConfigSource(path).read_config()
+    assert config.claude_executable is None
+    assert config.warnings == ()
+
+
+def test_claude_executable_valid_string(tmp_path):
+    path = write_toml(tmp_path, 'claude_executable = "/opt/claude/bin/claude"\n')
+    config = TomlConfigSource(path).read_config()
+    assert config.claude_executable == "/opt/claude/bin/claude"
+    assert config.warnings == ()
+
+
+def test_claude_executable_wrong_type_defaults_and_warns(tmp_path):
+    path = write_toml(tmp_path, "claude_executable = 7\n")
+    config = TomlConfigSource(path).read_config()
+    assert config.claude_executable is None
+    assert len(config.warnings) == 1
+    assert "claude_executable" in config.warnings[0]
+
+
+def test_claude_executable_empty_string_defaults_and_warns(tmp_path):
+    path = write_toml(tmp_path, 'claude_executable = ""\n')
+    config = TomlConfigSource(path).read_config()
+    assert config.claude_executable is None
+    assert len(config.warnings) == 1

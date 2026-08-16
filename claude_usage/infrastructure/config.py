@@ -11,6 +11,7 @@ DEFAULT_PATH = Path.home() / ".config" / "claude-usage" / "config.toml"
 
 _POLL_SECONDS_RANGE = range(1, 601)
 _STALE_MINUTES_RANGE = range(1, 1441)
+_REFRESH_TIMEOUT_RANGE = range(5, 601)
 
 
 class TomlConfigSource:
@@ -35,9 +36,15 @@ class TomlConfigSource:
         stale_minutes = _read_int(
             data, "stale_after_minutes", 15, _STALE_MINUTES_RANGE, warnings
         )
+        refresh_timeout = _read_int(
+            data, "refresh_timeout_seconds", 60, _REFRESH_TIMEOUT_RANGE, warnings
+        )
+        claude_executable = _read_str(data, "claude_executable", warnings)
         return Config(
             poll_seconds=poll_seconds,
             stale_after=timedelta(minutes=stale_minutes),
+            refresh_timeout_seconds=refresh_timeout,
+            claude_executable=claude_executable,
             warnings=tuple(warnings),
         )
 
@@ -51,4 +58,14 @@ def _read_int(
     if isinstance(value, bool) or not isinstance(value, int) or value not in valid_range:
         warnings.append(f"{key} is invalid — using default")
         return default
+    return value
+
+
+def _read_str(data: dict, key: str, warnings: list[str]) -> str | None:
+    if key not in data:
+        return None
+    value = data[key]
+    if not isinstance(value, str) or not value:
+        warnings.append(f"{key} is invalid — using default")
+        return None
     return value

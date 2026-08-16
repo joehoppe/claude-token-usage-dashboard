@@ -21,6 +21,8 @@ class Clock(Protocol):
 class Config:
     poll_seconds: int = 10
     stale_after: timedelta = STALE_AFTER
+    refresh_timeout_seconds: int = 60
+    claude_executable: str | None = None
     warnings: tuple[str, ...] = ()
 
 
