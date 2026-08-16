@@ -13,10 +13,15 @@ from claude_usage.ui.app.panels import QuotaPanel
 from claude_usage.ui.app.presenter import QuotaView
 
 _MIN_WIDTH = 240
+_BUTTON_MARGIN = 8
 
 
 class QuotaFrame(wx.Frame):
-    def __init__(self, on_close: Callable[[], None]) -> None:
+    def __init__(
+        self,
+        on_close: Callable[[], None],
+        on_refresh: Callable[[], None] | None = None,
+    ) -> None:
         super().__init__(
             None,
             title="Claude Usage",
@@ -26,10 +31,32 @@ class QuotaFrame(wx.Frame):
         self.SetBackgroundColour(wx.Colour(*theme.BACKGROUND))
         self._on_close = on_close
         self.panel = QuotaPanel(self)
+        self._refresh_button: wx.Button | None = None
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.panel, 1, wx.EXPAND)
+        if on_refresh is not None:
+            self._refresh_button = wx.Button(self, label="Refresh")
+            self._refresh_button.Bind(wx.EVT_BUTTON, lambda event: on_refresh())
+            sizer.Add(self._refresh_button, 0, wx.ALL, _BUTTON_MARGIN)
         self.SetSizer(sizer)
         self.Bind(wx.EVT_CLOSE, self._handle_close)
+
+    def begin_refresh(self) -> None:
+        """The disabled button is the entire in-progress UI (design §6)."""
+        if self._refresh_button is None:
+            return
+        self._refresh_button.Disable()
+        self._refresh_button.SetLabel("Refreshing…")
+
+    def end_refresh(self, tooltip: str | None) -> None:
+        if self._refresh_button is None:
+            return
+        self._refresh_button.SetLabel("Refresh")
+        self._refresh_button.Enable()
+        if tooltip is None:
+            self._refresh_button.UnsetToolTip()
+        else:
+            self._refresh_button.SetToolTip(tooltip)
 
     def show_view(self, view: QuotaView) -> None:
         self._fit_to_content(view)
@@ -43,11 +70,18 @@ class QuotaFrame(wx.Frame):
 
         Never shrinks: a size the user chose deliberately must stick.
         """
-        needed = self.panel.content_height(view)
+        needed = self.panel.content_height(view) + self._button_row_height()
         width, height = self.GetClientSize()
         self.SetMinClientSize((_MIN_WIDTH, needed))
         if height < needed:
             self.SetClientSize((width, needed))
+
+    def _button_row_height(self) -> int:
+        # Without this the button clips: content_height() covers only
+        # QuotaPanel's drawing (design §6).
+        if self._refresh_button is None:
+            return 0
+        return self._refresh_button.GetBestSize().height + 2 * _BUTTON_MARGIN
 
     def _handle_close(self, event: wx.CloseEvent) -> None:
         self._on_close()
