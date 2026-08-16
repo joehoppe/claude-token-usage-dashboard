@@ -37,6 +37,15 @@ class QuotaFrame(wx.Frame):
         if on_refresh is not None:
             self._refresh_button = wx.Button(self, label="Refresh")
             self._refresh_button.Bind(wx.EVT_BUTTON, lambda event: on_refresh())
+            # Pre-compute button size for both labels to prevent clipping on label change
+            refresh_size = self._refresh_button.GetBestSize()
+            self._refresh_button.SetLabel("Refreshing…")
+            refreshing_size = self._refresh_button.GetBestSize()
+            self._refresh_button.SetLabel("Refresh")
+            # Set min size to the max of both dimensions
+            max_width = max(refresh_size.width, refreshing_size.width)
+            max_height = max(refresh_size.height, refreshing_size.height)
+            self._refresh_button.SetMinSize(wx.Size(max_width, max_height))
             sizer.Add(self._refresh_button, 0, wx.ALL, _BUTTON_MARGIN)
         self.SetSizer(sizer)
         self.Bind(wx.EVT_CLOSE, self._handle_close)
@@ -81,7 +90,7 @@ class QuotaFrame(wx.Frame):
         # QuotaPanel's drawing (design §6).
         if self._refresh_button is None:
             return 0
-        return self._refresh_button.GetBestSize().height + 2 * _BUTTON_MARGIN
+        return self._refresh_button.GetMinSize().height + 2 * _BUTTON_MARGIN
 
     def _handle_close(self, event: wx.CloseEvent) -> None:
         self._on_close()
