@@ -73,6 +73,14 @@ below a size you chose. It stays above other windows and never steals focus
 when it refreshes — a refresh only repaints. Closing it stops the background
 poller and exits.
 
+The window includes a **Refresh** button below the quota display that invokes
+`claude -p "/usage"` to refresh Claude Code's quota cache on demand. This is
+useful when the window shows "No quota data cached yet". While the refresh runs,
+the button displays "Refreshing…" and is disabled. If the refresh fails, hovering
+the button shows a tooltip indicating the outcome (e.g., "Last refresh: not_found"
+when the `claude` executable cannot be found; set `claude_executable` in
+config.toml to specify its path).
+
 The console encoding note above does not apply here: the window draws its
 own text, so no `-X utf8` is needed.
 
@@ -92,14 +100,18 @@ silently. An unreadable or malformed file, or an out-of-range value, also
 falls back to defaults but adds a warning line to the window rather than
 failing.
 
-| Key                   | Default | Range  | Effect                                    |
-|-----------------------|---------|--------|-------------------------------------------|
-| `poll_seconds`        | 10      | 1–600  | seconds between background refreshes      |
-| `stale_after_minutes` | 15      | 1–1440 | reading age at which the view marks STALE |
+| Key                       | Default | Range  | Effect                                    |
+|---------------------------|---------|--------|-------------------------------------------|
+| `poll_seconds`            | 10      | 1–600  | seconds between background refreshes      |
+| `stale_after_minutes`     | 15      | 1–1440 | reading age at which the view marks STALE |
+| `refresh_timeout_seconds` | 60      | 5–600  | timeout in seconds for the Refresh button's `claude -p "/usage"` subprocess |
+| `claude_executable`       | absent  | string | explicit path to the `claude` executable for the Refresh button; if unset, resolved from `PATH` |
 
 ```toml
 poll_seconds = 30
 stale_after_minutes = 20
+refresh_timeout_seconds = 60
+# claude_executable = "/path/to/claude"
 ```
 
 ## Development
