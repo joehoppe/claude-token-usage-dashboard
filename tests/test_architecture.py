@@ -10,8 +10,20 @@ FORBIDDEN_REFS = {
         "claude_usage.infrastructure",
         "claude_usage.ui",
         "import wx",
+        "import subprocess",
+        "from subprocess",
+        "import shutil",
+        "from shutil",
     ],
-    "application": ["claude_usage.infrastructure", "claude_usage.ui", "import wx"],
+    "application": [
+        "claude_usage.infrastructure",
+        "claude_usage.ui",
+        "import wx",
+        "import subprocess",
+        "from subprocess",
+        "import shutil",
+        "from shutil",
+    ],
     "infrastructure": ["claude_usage.ui", "import wx"],
 }
 
