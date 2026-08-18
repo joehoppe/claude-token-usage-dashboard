@@ -14,6 +14,7 @@ from claude_usage.infrastructure.claude_json import ClaudeJsonQuotaSource
 from claude_usage.infrastructure.clock import SystemClock
 from claude_usage.infrastructure.config import TomlConfigSource
 from claude_usage.ui.app.frame import QuotaFrame
+from claude_usage.ui.app.icon import attach_app_icon
 from claude_usage.ui.app.poller import PollerThread
 from claude_usage.ui.app.refresh import RefreshWorker, outcome_tooltip
 
@@ -72,10 +73,16 @@ def main(argv: list[str] | None = None) -> int:
         deliver=deliver,
     )
 
+    # Held until MainLoop exits: dropping the TaskBarIcon reverts the Dock tile.
+    dock_icon = attach_app_icon(frame)
+
     frame.show_view(poller.refresh_once())  # one synchronous pass first —
     poller.start()                          # the window never flashes empty
     frame.Show()
     app.MainLoop()
+
+    if dock_icon is not None:
+        dock_icon.Destroy()
 
     # Joined after MainLoop rather than inside on_close: the close handler
     # runs on the GUI thread, and blocking it there stalls teardown.
