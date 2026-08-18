@@ -31,7 +31,7 @@ class QuotaFrame(wx.Frame):
         super().__init__(
             None,
             title="Claude Usage",
-            size=(356, 220),
+            size=(420, 220),
             style=wx.DEFAULT_FRAME_STYLE | wx.STAY_ON_TOP,
         )
         self.SetBackgroundColour(wx.Colour(*theme.BACKGROUND))
