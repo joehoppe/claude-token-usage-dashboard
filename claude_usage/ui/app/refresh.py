@@ -12,6 +12,20 @@ import wx
 from claude_usage.infrastructure.claude_cli import QuotaRefresher, RefreshOutcome
 from claude_usage.ui.app.presenter import QuotaView
 
+# Copy for the "?" help button beside Refresh. The warning must name the
+# exact command and the fact that it spends quota — refreshing is not free.
+HELP_TOOLTIP = (
+    'Refresh runs the Claude CLI (claude -p "/usage"), '
+    "which itself uses a small amount of your usage quota."
+)
+HELP_DIALOG_TITLE = "About Refresh"
+HELP_DIALOG_MESSAGE = (
+    'Refresh launches the Claude CLI in the background (claude -p "/usage") '
+    "so Claude Code updates its own quota cache. That call is a real, tiny "
+    "Claude session, so each refresh consumes a small amount of your usage "
+    "quota."
+)
+
 
 def outcome_tooltip(outcome: RefreshOutcome) -> str | None:
     """The button's whole outcome display: failures become a tooltip so a

@@ -5,7 +5,13 @@ imports the wx module (for the call_after default); no widget is created.
 import threading
 
 from claude_usage.infrastructure.claude_cli import RefreshOutcome
-from claude_usage.ui.app.refresh import RefreshWorker, outcome_tooltip
+from claude_usage.ui.app.refresh import (
+    HELP_DIALOG_MESSAGE,
+    HELP_DIALOG_TITLE,
+    HELP_TOOLTIP,
+    RefreshWorker,
+    outcome_tooltip,
+)
 
 VIEW = object()  # the worker never inspects the view; identity is enough
 
@@ -97,6 +103,20 @@ def test_start_works_again_after_completion():
     assert worker.start() is True
     assert deliver.done.wait(timeout=5)
     assert refresher.calls == 2
+
+
+def test_help_copy_states_the_command_and_the_token_cost():
+    assert HELP_TOOLTIP == (
+        'Refresh runs the Claude CLI (claude -p "/usage"), '
+        "which itself uses a small amount of your usage quota."
+    )
+    assert HELP_DIALOG_TITLE == "About Refresh"
+    assert HELP_DIALOG_MESSAGE == (
+        'Refresh launches the Claude CLI in the background (claude -p "/usage") '
+        "so Claude Code updates its own quota cache. That call is a real, tiny "
+        "Claude session, so each refresh consumes a small amount of your usage "
+        "quota."
+    )
 
 
 def test_outcome_tooltip_maps_failures_and_clears_success():

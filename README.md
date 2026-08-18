@@ -81,6 +81,10 @@ the button shows a tooltip indicating the outcome (e.g., "Last refresh: not_foun
 when the `claude` executable cannot be found; set `claude_executable` in
 config.toml to specify its path).
 
+A **?** button next to Refresh explains the cost: the refresh spawns a real
+(tiny) Claude session, so each click consumes a small amount of your usage
+quota. Hover it for the short version, or click it for the full explanation.
+
 The console encoding note above does not apply here: the window draws its
 own text, so no `-X utf8` is needed.
 
