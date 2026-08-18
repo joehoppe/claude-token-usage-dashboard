@@ -328,7 +328,9 @@ describe the same periods — otherwise the two panels invite a false comparison
 
 ### 7.2 Quota panel — primary
 
-- One horizontal bar per entry in `limits[]`, sorted by `percent` descending.
+- One horizontal bar per entry in `limits[]`, in fixed kind order: `session`,
+  then `weekly_all`, then `weekly_scoped` (unknown kinds after these, in input
+  order).
 - **The headline number is the worst bar**, which is the binding constraint —
   not the aggregate and not an average. In the observed snapshot the aggregate
   weekly read 39% while the Fable-scoped weekly read 66%; the latter is what

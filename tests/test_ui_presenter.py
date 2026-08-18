@@ -59,11 +59,21 @@ def test_used_is_percent_clamped():
     assert view.bars[0].used == 0
 
 
-def test_bars_sorted_by_percent_descending():
-    low = make_limit(kind="session", percent=25)
-    high = make_limit(kind="weekly_all", percent=75)
-    view = present(make_snapshot([low, high]), Config())
-    assert [bar.percent for bar in view.bars] == [75, 25]
+def test_bars_display_session_then_weekly_then_weekly_fable():
+    weekly_fable = make_limit(kind="weekly_scoped", percent=90, scope_model="Fable")
+    session = make_limit(kind="session", percent=10)
+    weekly_all = make_limit(kind="weekly_all", percent=50)
+    view = present(make_snapshot([weekly_fable, session, weekly_all]), Config())
+    assert [bar.label for bar in view.bars] == [
+        "Session (5hr)", "Weekly (7 day)", "Weekly Fable"
+    ]
+
+
+def test_unknown_kind_bars_display_after_known_kinds():
+    unknown = make_limit(kind="monthly_all", percent=99)
+    session = make_limit(kind="session", percent=10)
+    view = present(make_snapshot([unknown, session]), Config())
+    assert [bar.label for bar in view.bars] == ["Session (5hr)", "Monthly All"]
 
 
 def test_unknown_severity_maps_to_critical():

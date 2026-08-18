@@ -17,6 +17,9 @@ from claude_usage.ui.shared.format import coarse, label_for
 
 _SEVERITY = {"normal": "normal", "warning": "warning"}
 
+# Fixed display order; unknown kinds sort after these, keeping input order.
+_KIND_ORDER = {"session": 0, "weekly_all": 1, "weekly_scoped": 2}
+
 _NO_DATA_MESSAGES = {
     QuotaUnavailable.NO_FILE: "Claude Code data not found",
     QuotaUnavailable.NO_QUOTA_KEY: "No quota data cached yet — click Refresh",
@@ -40,7 +43,7 @@ class QuotaView:
     headline: str              # "66% used"
     age_text: str              # "as of 7m ago"
     stale: bool
-    bars: tuple[BarView, ...]  # sorted by percent descending
+    bars: tuple[BarView, ...]  # fixed kind order: session, weekly, weekly fable
     notices: tuple[str, ...]
     message: str | None        # set only when there are no bars to show
     message_detail: str | None
@@ -77,10 +80,10 @@ def present(snapshot: QuotaSnapshot, config: Config) -> QuotaView:
     )
 
     bars = tuple(
-        sorted(
-            (_bar_view(limit, snapshot.captured_at) for limit in quota.limits),
-            key=lambda bar: bar.percent,
-            reverse=True,
+        _bar_view(limit, snapshot.captured_at)
+        for limit in sorted(
+            quota.limits,
+            key=lambda limit: _KIND_ORDER.get(limit.kind, len(_KIND_ORDER)),
         )
     )
 
