@@ -23,9 +23,8 @@ _SEVERITY_COLORS = {
 _BAR_HEIGHT = 18
 _ROW_HEIGHT = 40
 _MARGIN = 8
-_LINE_HEIGHT = 18     # header lines and message lines
+_LINE_HEIGHT = 18     # message lines
 _NOTICE_HEIGHT = 16   # footer notice lines
-_HEADER_HEIGHT = _MARGIN + 44
 
 
 class QuotaPanel(wx.Panel):
@@ -44,7 +43,7 @@ class QuotaPanel(wx.Panel):
         before rendering — bar count varies per view, so a fixed window
         height would clip whenever a limit is added.
         """
-        height = _HEADER_HEIGHT
+        height = _MARGIN
         if view.message is not None:
             height += _LINE_HEIGHT * (2 if view.message_detail else 1)
         else:
@@ -59,23 +58,13 @@ class QuotaPanel(wx.Panel):
         view = self._view
         if view is None:
             return
-        y = self._draw_header(dc, view)
+        y = _MARGIN
         if view.message is not None:
             self._draw_message(dc, view, y)
             return
         for bar in view.bars:
             y = self._draw_bar(dc, bar, y, greyed=view.stale)
         self._draw_footer(dc, view, y)
-
-    def _draw_header(self, dc: wx.DC, view: QuotaView) -> int:
-        base_font = self.GetFont()
-        dc.SetFont(base_font.Bold())
-        dc.SetTextForeground(_TEXT_PRIMARY)
-        dc.DrawText(view.headline, _MARGIN, _MARGIN)
-        dc.SetFont(base_font)
-        dc.SetTextForeground(_TEXT_SECONDARY)
-        dc.DrawText(view.age_text, _MARGIN, _MARGIN + _LINE_HEIGHT)
-        return _HEADER_HEIGHT
 
     def _draw_message(self, dc: wx.DC, view: QuotaView, y: int) -> None:
         dc.SetTextForeground(_TEXT_PRIMARY)

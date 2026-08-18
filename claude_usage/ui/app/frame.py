@@ -1,6 +1,7 @@
-"""wx.Frame composition root for the window: header, bar rows, footer via
-QuotaPanel. STAY_ON_TOP, resizable, never steals focus on refresh (refresh
-only repaints — it never calls Raise()/SetFocus()).
+"""wx.Frame composition root for the window: a top row (headline, age text,
+Refresh/help buttons), then bar rows and footer via QuotaPanel. STAY_ON_TOP,
+resizable, never steals focus on refresh (refresh only repaints — it never
+calls Raise()/SetFocus()).
 """
 from __future__ import annotations
 
@@ -38,17 +39,30 @@ class QuotaFrame(wx.Frame):
         self.panel = QuotaPanel(self)
         self._refresh_button: wx.Button | None = None
         self._help_button: wx.Button | None = None
+        self._headline_text = wx.StaticText(self, label="")
+        self._headline_text.SetFont(self._headline_text.GetFont().Bold())
+        self._headline_text.SetForegroundColour(wx.Colour(*theme.TEXT_PRIMARY))
+        self._age_text = wx.StaticText(self, label="")
+        self._age_text.SetForegroundColour(wx.Colour(*theme.TEXT_SECONDARY))
+        row = wx.BoxSizer(wx.HORIZONTAL)
+        row.Add(self._headline_text, 0, wx.ALIGN_CENTER_VERTICAL)
+        row.Add(
+            self._age_text,
+            0,
+            wx.LEFT | wx.ALIGN_CENTER_VERTICAL,
+            _BUTTON_MARGIN,
+        )
+        row.AddStretchSpacer(1)
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(self.panel, 1, wx.EXPAND)
         if on_refresh is not None:
             self._refresh_button = wx.Button(self, label="Refresh")
             self._refresh_button.Bind(wx.EVT_BUTTON, lambda event: on_refresh())
-            # Pre-compute button size for both labels to prevent clipping on label change
+            # Pre-compute the size of both labels so a label change never
+            # clips: min size is the max of both dimensions.
             refresh_size = self._refresh_button.GetBestSize()
             self._refresh_button.SetLabel("Refreshing…")
             refreshing_size = self._refresh_button.GetBestSize()
             self._refresh_button.SetLabel("Refresh")
-            # Set min size to the max of both dimensions
             max_width = max(refresh_size.width, refreshing_size.width)
             max_height = max(refresh_size.height, refreshing_size.height)
             self._refresh_button.SetMinSize(wx.Size(max_width, max_height))
@@ -61,15 +75,15 @@ class QuotaFrame(wx.Frame):
             )
             self._help_button.SetToolTip(HELP_TOOLTIP)
             self._help_button.Bind(wx.EVT_BUTTON, self._show_refresh_help)
-            row = wx.BoxSizer(wx.HORIZONTAL)
-            row.Add(self._refresh_button, 0)
+            row.Add(self._refresh_button, 0, wx.ALIGN_CENTER_VERTICAL)
             row.Add(
                 self._help_button,
                 0,
                 wx.LEFT | wx.ALIGN_CENTER_VERTICAL,
                 _BUTTON_MARGIN,
             )
-            sizer.Add(row, 0, wx.ALL, _BUTTON_MARGIN)
+        sizer.Add(row, 0, wx.EXPAND | wx.ALL, _BUTTON_MARGIN)
+        sizer.Add(self.panel, 1, wx.EXPAND)
         self.SetSizer(sizer)
         self.Bind(wx.EVT_CLOSE, self._handle_close)
 
@@ -91,6 +105,9 @@ class QuotaFrame(wx.Frame):
             self._refresh_button.SetToolTip(tooltip)
 
     def show_view(self, view: QuotaView) -> None:
+        self._headline_text.SetLabel(view.headline)
+        self._age_text.SetLabel(view.age_text)
+        self.Layout()  # label widths changed; re-place the top row
         self._fit_to_content(view)
         self.panel.render(view)
 
@@ -102,7 +119,7 @@ class QuotaFrame(wx.Frame):
 
         Never shrinks: a size the user chose deliberately must stick.
         """
-        needed = self.panel.content_height(view) + self._button_row_height()
+        needed = self.panel.content_height(view) + self._top_row_height()
         width, height = self.GetClientSize()
         self.SetMinClientSize((_MIN_WIDTH, needed))
         if height < needed:
@@ -117,12 +134,15 @@ class QuotaFrame(wx.Frame):
         ) as dialog:
             dialog.ShowModal()
 
-    def _button_row_height(self) -> int:
-        # Without this the button clips: content_height() covers only
+    def _top_row_height(self) -> int:
+        # Without this the top row clips: content_height() covers only
         # QuotaPanel's drawing (design §6).
-        if self._refresh_button is None:
-            return 0
-        heights = [self._refresh_button.GetMinSize().height]
+        heights = [
+            self._headline_text.GetBestSize().height,
+            self._age_text.GetBestSize().height,
+        ]
+        if self._refresh_button is not None:
+            heights.append(self._refresh_button.GetMinSize().height)
         if self._help_button is not None:
             heights.append(self._help_button.GetMinSize().height)
         return max(heights) + 2 * _BUTTON_MARGIN
