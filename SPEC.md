@@ -1,4 +1,4 @@
-# Claude Usage Dashboard — Design Spec
+# Usage Dashboard for Claude — Design Spec
 
 **Status:** Draft
 **Date:** 2026-08-05

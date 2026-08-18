@@ -233,7 +233,7 @@ class DashboardFrame(wx.Frame):
     def __init__(self, service: DashboardService) -> None:
         super().__init__(
             None,
-            title="Claude Usage",
+            title="Usage Dashboard for Claude",
             style=wx.DEFAULT_FRAME_STYLE | wx.STAY_ON_TOP,
         )
         panel = wx.Panel(self)

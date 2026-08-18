@@ -1,13 +1,18 @@
-# claude-usage
+# Usage Dashboard for Claude
 
 Claude Code quota usage from the local `~/.claude.json` cache, shown in a
 small always-on-top desktop window that refreshes in the background.
+
+**Requires [Claude Code](https://claude.com/claude-code).** The dashboard
+reads the local cache Claude Code maintains and shells out to the `claude`
+CLI for manual refreshes — without Claude Code installed it has nothing to
+show.
 
 > This is an unofficial community project and is not affiliated with,
 > endorsed by, or sponsored by Anthropic. Claude is a trademark of
 > Anthropic, PBC.
 
-![Claude Usage window showing session, weekly, and weekly Fable quota bars with a Refresh button](docs/images/app-window.png)
+![Usage Dashboard for Claude window showing session, weekly, and weekly Fable quota bars with a Refresh button](docs/images/app-window.png)
 
 A one-shot CLI view of the same reading is also included — see
 [docs/CLI.md](docs/CLI.md).

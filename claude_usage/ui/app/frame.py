@@ -30,7 +30,7 @@ class QuotaFrame(wx.Frame):
     ) -> None:
         super().__init__(
             None,
-            title="Claude Usage",
+            title="Usage Dashboard for Claude",
             size=(420, 220),
             style=wx.DEFAULT_FRAME_STYLE | wx.STAY_ON_TOP,
         )
