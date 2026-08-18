@@ -3,6 +3,10 @@
 Claude Code quota usage from the local `~/.claude.json` cache, shown in a
 small always-on-top desktop window that refreshes in the background.
 
+> This is an unofficial community project and is not affiliated with,
+> endorsed by, or sponsored by Anthropic. Claude is a trademark of
+> Anthropic, PBC.
+
 ![Claude Usage window showing session, weekly, and weekly Fable quota bars with a Refresh button](docs/images/app-window.png)
 
 A one-shot CLI view of the same reading is also included — see
