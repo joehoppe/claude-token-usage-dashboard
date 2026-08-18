@@ -1,7 +1,7 @@
 """Pure QuotaSnapshot -> str. No I/O; the caller prints."""
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, tzinfo
 
 from claude_usage.domain.quota import (
     LimitReading,
@@ -48,15 +48,28 @@ def render_row(
     return row.rstrip()
 
 
+def clock_time(moment: datetime, tz: tzinfo | None = None) -> str:
+    """12-hour wall-clock time; avoids platform-specific strftime flags."""
+    local = moment.astimezone(tz)
+    meridiem = "PM" if local.hour >= 12 else "AM"
+    return f"{local.hour % 12 or 12}:{local.minute:02d} {meridiem}"
+
+
 def render(
-    snapshot: QuotaSnapshot, *, color: bool = False, ascii_glyphs: bool = False
+    snapshot: QuotaSnapshot,
+    *,
+    color: bool = False,
+    ascii_glyphs: bool = False,
+    tz: tzinfo | None = None,
 ) -> str:
     quota = snapshot.quota
     if quota is None:
         raise ValueError("render() requires a snapshot with quota data")
     status = "STALE" if snapshot.is_stale else "fresh"
     age = coarse(quota.age(snapshot.captured_at))
-    lines = [f"USAGE{' ' * 32}as of {age} ago · {status}", ""]
+    run_at = clock_time(snapshot.captured_at, tz)
+    header = f"USAGE{' ' * 12}run {run_at} · data {age} ago · {status}"
+    lines = [header, ""]
     if quota.limits:
         for limit in quota.limits:
             lines.append(

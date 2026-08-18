@@ -14,7 +14,9 @@ def test_renders_fixture_and_exits_zero(capsys):
     assert err == ""
     assert "Session (5hr)" in out
     assert "Weekly Fable" in out
-    assert "as of" in out
+    assert "run " in out
+    assert " data " in out
+    assert "ago" in out
 
 
 def test_no_file_exits_one_with_stderr(tmp_path, capsys):

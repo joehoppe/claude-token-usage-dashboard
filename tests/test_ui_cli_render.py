@@ -114,21 +114,37 @@ def test_render_preserves_source_order_not_percent_order():
 
 
 def test_render_age_line_fresh():
-    output = render(make_snapshot([make_limit()]))
-    assert output.splitlines()[0] == "USAGE" + " " * 32 + "as of 5m ago · fresh"
+    output = render(make_snapshot([make_limit()]), tz=UTC)
+    assert output.splitlines()[0] == (
+        "USAGE" + " " * 12 + "run 6:10 PM · data 5m ago · fresh"
+    )
 
 
 def test_render_age_line_stale():
     snapshot = make_snapshot(
         [make_limit()], measured_at=NOW - timedelta(hours=3), is_stale=True
     )
-    assert "as of 3h ago · STALE" in render(snapshot).splitlines()[0]
+    header = render(snapshot, tz=UTC).splitlines()[0]
+    assert "run 6:10 PM · data 3h ago · STALE" in header
+
+
+def test_render_run_time_converts_to_given_timezone():
+    snapshot = make_snapshot([make_limit()])
+    header = render(snapshot, tz=timezone(timedelta(hours=-4))).splitlines()[0]
+    assert "run 2:10 PM · data 5m ago" in header
+
+
+def test_render_clock_wraps_past_midnight_to_twelve():
+    # 18:10 UTC at UTC+6 is 00:10 the next day — must read 12:10 AM, not 0:10.
+    snapshot = make_snapshot([make_limit()])
+    header = render(snapshot, tz=timezone(timedelta(hours=6))).splitlines()[0]
+    assert "run 12:10 AM" in header
 
 
 def test_render_empty_limits():
-    output = render(make_snapshot([]))
+    output = render(make_snapshot([]), tz=UTC)
     assert "no limits reported" in output
-    assert "as of 5m ago" in output
+    assert "data 5m ago" in output
 
 
 def test_render_promo_footnote():
@@ -173,7 +189,7 @@ FIXTURE = Path(__file__).parent / "fixtures" / "live_snapshot.json"
 
 GOLDEN = "\n".join(
     [
-        "USAGE" + " " * 32 + "as of 5m ago · fresh",
+        "USAGE" + " " * 12 + "run 6:10 PM · data 5m ago · fresh",
         "",
         "  Session (5hr)" + " " * 18 + "25%  " + "█" * 4 + "░" * 11
         + "  resets in 5h",
@@ -199,4 +215,4 @@ def test_golden_reproduces_fixture_display():
     # Fixture fetchedAtMs = 2026-08-05T18:05:00Z; freeze "now" 5 minutes later.
     frozen = FrozenClock(datetime(2026, 8, 5, 18, 10, tzinfo=UTC))
     service = UsageService(ClaudeJsonQuotaSource(FIXTURE), frozen)
-    assert render(service.snapshot()) == GOLDEN
+    assert render(service.snapshot(), tz=UTC) == GOLDEN
