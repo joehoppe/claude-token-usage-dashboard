@@ -334,7 +334,7 @@ describe the same periods — otherwise the two panels invite a false comparison
   weekly read 39% while the Fable-scoped weekly read 66%; the latter is what
   would actually stop work.
 - Label each bar `kind` + `scope.model.display_name` when scope is non-null.
-- Show **remaining** (`100 - percent`), matching the tool's purpose.
+- Show **used** (`percent`, clamped to 0–100).
 - Show a countdown to `resets_at`.
 - **Color from the `severity` field, not from local thresholds.** Deriving
   red/amber from hardcoded percentages will disagree with what Claude Code

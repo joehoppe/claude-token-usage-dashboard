@@ -44,7 +44,7 @@ def test_headline_picks_worst_bar_not_aggregate():
     weekly_all = make_limit(kind="weekly_all", percent=39)
     weekly_fable = make_limit(kind="weekly_scoped", percent=66, scope_model="Fable")
     view = present(make_snapshot([weekly_all, weekly_fable]), Config())
-    assert view.headline == "34% remaining"
+    assert view.headline == "66% used"
 
 
 def test_headline_no_limits_reported():
@@ -52,11 +52,11 @@ def test_headline_no_limits_reported():
     assert view.headline == "No limits reported"
 
 
-def test_remaining_is_100_minus_percent_clamped():
+def test_used_is_percent_clamped():
     view = present(make_snapshot([make_limit(percent=140)]), Config())
-    assert view.bars[0].remaining == 0
+    assert view.bars[0].used == 100
     view = present(make_snapshot([make_limit(percent=-5)]), Config())
-    assert view.bars[0].remaining == 100
+    assert view.bars[0].used == 0
 
 
 def test_bars_sorted_by_percent_descending():

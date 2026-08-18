@@ -29,7 +29,7 @@ _READ_ERROR_MESSAGE = "Couldn't read quota data"
 class BarView:
     label: str               # "Weekly Fable"
     percent: int
-    remaining: int           # 100 - percent, the number shown (SPEC §7.2)
+    used: int                # percent clamped to 0–100, the number shown (SPEC §7.2)
     severity: str            # "normal" | "warning" | "critical"
     active: bool
     resets_text: str | None  # "resets in 3h"
@@ -37,7 +37,7 @@ class BarView:
 
 @dataclass(frozen=True)
 class QuotaView:
-    headline: str              # "34% remaining"
+    headline: str              # "66% used"
     age_text: str              # "as of 7m ago"
     stale: bool
     bars: tuple[BarView, ...]  # sorted by percent descending
@@ -73,7 +73,7 @@ def present(snapshot: QuotaSnapshot, config: Config) -> QuotaView:
 
     binding = quota.binding()
     headline = (
-        f"{_remaining(binding.percent)}% remaining" if binding else "No limits reported"
+        f"{_used(binding.percent)}% used" if binding else "No limits reported"
     )
 
     bars = tuple(
@@ -113,8 +113,8 @@ def present_error(exc: Exception) -> QuotaView:
     )
 
 
-def _remaining(percent: int) -> int:
-    return max(0, min(100, 100 - percent))
+def _used(percent: int) -> int:
+    return max(0, min(100, percent))
 
 
 def _bar_view(limit: LimitReading, now: datetime) -> BarView:
@@ -122,7 +122,7 @@ def _bar_view(limit: LimitReading, now: datetime) -> BarView:
     return BarView(
         label=label_for(limit),
         percent=limit.percent,
-        remaining=_remaining(limit.percent),
+        used=_used(limit.percent),
         severity=_SEVERITY.get(limit.severity, "critical"),
         active=limit.is_active,
         resets_text=f"resets in {coarse(resets_in)}" if resets_in is not None else None,

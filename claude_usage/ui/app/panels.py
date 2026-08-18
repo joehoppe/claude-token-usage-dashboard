@@ -98,7 +98,7 @@ class QuotaPanel(wx.Panel):
         dc.SetBrush(wx.Brush(color))
         dc.DrawRectangle(_MARGIN, y, filled, _BAR_HEIGHT)
 
-        label = f"{bar.label}  {bar.remaining}%"
+        label = f"{bar.label}  {bar.used}%"
         if bar.active:
             label += "  ●"
         if bar.resets_text:
