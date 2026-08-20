@@ -37,6 +37,21 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _enable_dark_titlebar(app: wx.App) -> None:
+    """Paint the native title bar dark to match the forced dark content.
+
+    Must run before any window exists. `DarkMode_Always` rather than
+    `DarkMode_Auto`: theme.py forces a dark palette whatever the OS theme is,
+    so the title bar must not flip to light under a light Windows theme.
+    No-op off MSW, where neither name exists — hence the getattr pair rather
+    than direct attribute access.
+    """
+    enable = getattr(app, "MSWEnableDarkMode", None)
+    always = getattr(wx.App, "DarkMode_Always", None)
+    if enable is not None and always is not None:
+        enable(always)
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     config = TomlConfigSource(args.config).read_config()
@@ -45,6 +60,7 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     app = wx.App()
+    _enable_dark_titlebar(app)
 
     def on_refresh() -> None:
         # Closes over `worker`, assigned below — safe because the callback
