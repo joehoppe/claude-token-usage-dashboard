@@ -20,6 +20,8 @@ from claude_usage.ui.app.refresh import (
 
 _MIN_WIDTH = 240
 _BUTTON_MARGIN = 8
+# Extra horizontal breathing room for the exact-fit "?" button.
+_HELP_BUTTON_PADDING = 6
 
 
 class QuotaFrame(wx.Frame):
@@ -72,6 +74,12 @@ class QuotaFrame(wx.Frame):
             # end_refresh() overwrites with failure outcomes.
             self._help_button = wx.Button(
                 self, label="?", style=wx.BU_EXACTFIT
+            )
+            # BU_EXACTFIT hugs the "?" glyph too tightly to read as a button,
+            # so widen it a little without touching the exact-fit height.
+            help_size = self._help_button.GetBestSize()
+            self._help_button.SetMinSize(
+                wx.Size(help_size.width + _HELP_BUTTON_PADDING, help_size.height)
             )
             self._help_button.SetToolTip(HELP_TOOLTIP)
             self._help_button.Bind(wx.EVT_BUTTON, self._show_refresh_help)
