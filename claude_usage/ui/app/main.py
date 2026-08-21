@@ -14,7 +14,7 @@ from claude_usage.infrastructure.claude_json import ClaudeJsonQuotaSource
 from claude_usage.infrastructure.clock import SystemClock
 from claude_usage.infrastructure.config import TomlConfigSource
 from claude_usage.ui.app.frame import QuotaFrame
-from claude_usage.ui.app.icon import attach_app_icon
+from claude_usage.ui.app.icon import attach_app_icon, set_app_user_model_id
 from claude_usage.ui.app.poller import PollerThread
 from claude_usage.ui.app.refresh import RefreshWorker, outcome_tooltip
 
@@ -53,6 +53,10 @@ def _enable_dark_titlebar(app: wx.App) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Before anything can create a window: the taskbar button takes its icon
+    # from the process AppUserModelID, and that is read once, at creation.
+    set_app_user_model_id()
+
     args = build_parser().parse_args(argv)
     config = TomlConfigSource(args.config).read_config()
     service = UsageService(
