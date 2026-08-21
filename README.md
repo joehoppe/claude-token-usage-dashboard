@@ -1,7 +1,8 @@
 # Usage Dashboard for Claude
 
 Claude Code quota usage from the local `~/.claude.json` cache, shown in a
-small always-on-top desktop window that refreshes in the background.
+small always-on-top desktop window that refreshes in the background. Runs on
+macOS and Windows.
 
 **Requires [Claude Code](https://claude.com/claude-code).** The dashboard
 reads the local cache Claude Code maintains and shells out to the `claude`
