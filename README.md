@@ -13,7 +13,8 @@ show.
 > endorsed by, or sponsored by Anthropic. Claude is a trademark of
 > Anthropic, PBC.
 
-![Usage Dashboard for Claude window showing session, weekly, and weekly Fable quota bars with a Refresh button](docs/images/app-window.png)
+<!-- markdownlint-disable-next-line MD033 -->
+<img src="docs/images/app-window.png" width="532" alt="Usage Dashboard for Claude window showing session, weekly, and weekly Fable quota bars with a Refresh button">
 
 A one-shot CLI view of the same reading is also included — see
 [docs/CLI.md](docs/CLI.md).
