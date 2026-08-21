@@ -37,19 +37,25 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _enable_dark_titlebar(app: wx.App) -> None:
-    """Paint the native title bar dark to match the forced dark content.
+def _enable_dark_titlebar(app: wx.App) -> bool:
+    """Paint the native window chrome dark to match the forced dark content.
 
-    Must run before any window exists. `DarkMode_Always` rather than
-    `DarkMode_Auto`: theme.py forces a dark palette whatever the OS theme is,
-    so the title bar must not flip to light under a light Windows theme.
-    No-op off MSW, where neither name exists — hence the getattr pair rather
-    than direct attribute access.
+    Must run before any window exists. `Appearance.Dark` rather than
+    `Appearance.System`: theme.py forces a dark palette whatever the OS theme
+    is, so the title bar must not flip to light under a light OS theme.
+    SetAppearance is the portable wxWidgets 3.3 API — on MSW it enables dark
+    mode, on macOS it sets the NSApplication appearance. Its MSW-only
+    predecessor (MSWEnableDarkMode) exists off Windows too but only as a stub
+    that raises NotImplementedError, so presence-of-name is not a usable
+    feature test there. On wxPython < 4.3 SetAppearance itself is absent;
+    report failure rather than raising.
     """
-    enable = getattr(app, "MSWEnableDarkMode", None)
-    always = getattr(wx.App, "DarkMode_Always", None)
-    if enable is not None and always is not None:
-        enable(always)
+    set_appearance = getattr(app, "SetAppearance", None)
+    if set_appearance is None:
+        return False
+    # wxPython's stubs type Appearance/AppearanceResult as Union aliases and
+    # hoist Dark/Ok onto wx.App; at runtime only these nested enums exist.
+    return set_appearance(wx.App.Appearance.Dark) == wx.App.AppearanceResult.Ok  # type: ignore[attr-defined]
 
 
 def main(argv: list[str] | None = None) -> int:
