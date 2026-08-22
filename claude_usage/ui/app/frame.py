@@ -10,13 +10,10 @@ from typing import Callable
 import wx
 
 from claude_usage.ui.app import theme
+from claude_usage.ui.app.help_dialog import HelpDialog
 from claude_usage.ui.app.panels import QuotaPanel
 from claude_usage.ui.app.presenter import QuotaView
-from claude_usage.ui.app.refresh import (
-    HELP_DIALOG_MESSAGE,
-    HELP_DIALOG_TITLE,
-    HELP_TOOLTIP,
-)
+from claude_usage.ui.app.refresh import HELP_TOOLTIP
 
 _MIN_WIDTH = 240
 _BUTTON_MARGIN = 8
@@ -134,12 +131,7 @@ class QuotaFrame(wx.Frame):
             self.SetClientSize((width, needed))
 
     def _show_refresh_help(self, event: wx.CommandEvent) -> None:
-        with wx.MessageDialog(
-            self,
-            HELP_DIALOG_MESSAGE,
-            HELP_DIALOG_TITLE,
-            style=wx.OK | wx.ICON_INFORMATION,
-        ) as dialog:
+        with HelpDialog(self) as dialog:
             dialog.ShowModal()
 
     def _top_row_height(self) -> int:
