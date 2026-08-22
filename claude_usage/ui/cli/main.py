@@ -7,8 +7,15 @@ import os
 import sys
 from pathlib import Path
 
+from typing import Callable
+
 from claude_usage.application.usage import UsageService
 from claude_usage.domain.quota import QuotaSnapshot, QuotaUnavailable
+from claude_usage.infrastructure.claude_cli import (
+    ClaudeCliRefresher,
+    QuotaRefresher,
+    RefreshOutcome,
+)
 from claude_usage.infrastructure.claude_json import ClaudeJsonQuotaSource
 from claude_usage.infrastructure.clock import SystemClock
 from claude_usage.ui.cli.render import render
@@ -33,6 +40,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--path", type=Path, default=None,
         help="read an alternate .claude.json (fixtures, testing)",
+    )
+    parser.add_argument(
+        "--refresh", action="store_true",
+        help=(
+            'refresh quota data first by running the Claude CLI '
+            '(claude -p "/usage"); consumes a small amount of quota'
+        ),
     )
     return parser
 
@@ -74,8 +88,18 @@ def snapshot_to_dict(snapshot: QuotaSnapshot) -> dict:
     }
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(
+    argv: list[str] | None = None,
+    refresher_factory: Callable[[], QuotaRefresher] = ClaudeCliRefresher,
+) -> int:
     args = build_parser().parse_args(argv)
+    if args.refresh:
+        outcome = refresher_factory().refresh()
+        if outcome is not RefreshOutcome.REFRESHED:
+            print(
+                f"Refresh failed: {outcome.value} — showing cached data",
+                file=sys.stderr,
+            )
     service = UsageService(ClaudeJsonQuotaSource(args.path), SystemClock())
     snapshot = service.snapshot()
     if snapshot.quota is None:

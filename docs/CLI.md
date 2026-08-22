@@ -30,6 +30,13 @@ USAGE                                as of 18m ago · STALE
 | `--no-color` | suppress ANSI colour                                       |
 | `--ascii`    | ASCII bar glyphs (`#`/`-`) instead of unicode block glyphs |
 | `--path`     | read an alternate `.claude.json` (fixtures, testing)       |
+| `--refresh`  | refresh quota data first, like the window's Refresh button |
+
+`--refresh` runs the Claude CLI (`claude -p "/usage"`) so Claude Code updates
+its own quota cache before the view renders. That call is a real, tiny Claude
+session, so each refresh consumes a small amount of your usage quota. If the
+refresh fails (e.g. `claude` is not on `PATH`), a warning is printed to stderr
+and the cached data is shown anyway.
 
 ## Windows: UnicodeEncodeError
 

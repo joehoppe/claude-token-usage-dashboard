@@ -2,9 +2,22 @@ import json
 import sys
 from pathlib import Path
 
-from claude_usage.ui.cli.main import main
+import pytest
+
+from claude_usage.infrastructure.claude_cli import RefreshOutcome
+from claude_usage.ui.cli.main import build_parser, main
 
 FIXTURE = Path(__file__).parent / "fixtures" / "live_snapshot.json"
+
+
+class FakeRefresher:
+    def __init__(self, outcome: RefreshOutcome) -> None:
+        self._outcome = outcome
+        self.calls = 0
+
+    def refresh(self) -> RefreshOutcome:
+        self.calls += 1
+        return self._outcome
 
 
 def test_renders_fixture_and_exits_zero(capsys):
@@ -110,6 +123,63 @@ def test_no_color_flag_suppresses_ansi_even_on_tty(capsys, monkeypatch):
     main(["--path", str(FIXTURE), "--no-color"])
     out, _ = capsys.readouterr()
     assert "\x1b[" not in out
+
+
+def test_refresh_flag_runs_refresher_before_render(capsys):
+    refresher = FakeRefresher(RefreshOutcome.REFRESHED)
+    code = main(
+        ["--path", str(FIXTURE), "--refresh"],
+        refresher_factory=lambda: refresher,
+    )
+    out, err = capsys.readouterr()
+    assert code == 0
+    assert refresher.calls == 1
+    assert err == ""
+    assert "Session (5hr)" in out
+
+
+def test_without_refresh_flag_refresher_never_runs(capsys):
+    refresher = FakeRefresher(RefreshOutcome.REFRESHED)
+    code = main(["--path", str(FIXTURE)], refresher_factory=lambda: refresher)
+    assert code == 0
+    assert refresher.calls == 0
+
+
+@pytest.mark.parametrize(
+    "outcome",
+    [
+        RefreshOutcome.NOT_FOUND,
+        RefreshOutcome.TIMED_OUT,
+        RefreshOutcome.FAILED,
+    ],
+)
+def test_refresh_failure_warns_and_still_renders(outcome, capsys):
+    code = main(
+        ["--path", str(FIXTURE), "--refresh"],
+        refresher_factory=lambda: FakeRefresher(outcome),
+    )
+    out, err = capsys.readouterr()
+    assert code == 0
+    assert f"Refresh failed: {outcome.value} — showing cached data" in err
+    assert "Session (5hr)" in out
+
+
+def test_refresh_failure_keeps_json_stdout_clean(capsys):
+    code = main(
+        ["--path", str(FIXTURE), "--refresh", "--json"],
+        refresher_factory=lambda: FakeRefresher(RefreshOutcome.NOT_FOUND),
+    )
+    out, err = capsys.readouterr()
+    assert code == 0
+    assert "Refresh failed" in err
+    payload = json.loads(out)
+    assert payload["quota"] is not None
+
+
+def test_refresh_help_text_names_the_quota_cost():
+    help_text = build_parser().format_help()
+    assert "--refresh" in help_text
+    assert "quota" in help_text
 
 
 def test_account_uuid_never_reaches_any_output(capsys):
