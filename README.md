@@ -16,9 +16,6 @@ show.
 <!-- markdownlint-disable-next-line MD033 -->
 <img src="docs/images/app-window.png" width="532" alt="Usage Dashboard for Claude window showing session, weekly, and weekly Fable quota bars with a Refresh button">
 
-A one-shot CLI view of the same reading is also included — see
-[docs/CLI.md](docs/CLI.md).
-
 ## Install
 
 ```bash
@@ -83,6 +80,20 @@ stale_after_minutes = 20
 refresh_timeout_seconds = 60
 # claude_executable = "/path/to/claude"
 ```
+
+## CLI
+
+`claude-usage` is a one-shot terminal view of the same reading:
+
+<!-- markdownlint-disable-next-line MD033 -->
+<img src="docs/images/cli.png" width="532" alt="claude-usage CLI output showing session, weekly, and weekly Fable quota bars with reset times and a promo line">
+
+Pass `--refresh` to refresh Claude Code's quota cache before rendering, like
+the window's Refresh button. It spawns a real (tiny) Claude session, so each
+refresh consumes a small amount of your usage quota.
+
+See [docs/CLI.md](docs/CLI.md) for the full flags table and Windows console
+encoding notes.
 
 ## Development
 
