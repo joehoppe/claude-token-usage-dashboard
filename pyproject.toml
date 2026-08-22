@@ -3,7 +3,7 @@ name = "claude-usage"
 version = "0.1.0"
 description = "Usage Dashboard for Claude: desktop and CLI views of Claude Code subscription quota"
 requires-python = ">=3.11"
-license = { text = "MIT" }
+license = { file = "LICENSE" }
 dependencies = ["wxPython"]
 
 [project.scripts]
