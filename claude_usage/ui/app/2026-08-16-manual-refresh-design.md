@@ -193,6 +193,8 @@ Invocation: `subprocess.run([exe, "-p", "/usage"], ...)` with
   timeout
 - `capture_output=True` — the child's chatter must not reach the app's
   stdout/stderr
+- `creationflags=NO_CONSOLE_WINDOW` — `subprocess.CREATE_NO_WINDOW` on
+  Windows, `0` elsewhere (the constant is Windows-only)
 - `timeout=timeout_seconds`, `check=False`
 
 Mapping: `TimeoutExpired` → `TIMED_OUT`; `OSError` → `FAILED`; exit 0 →
@@ -203,6 +205,23 @@ logged — it may contain account details.
 development machine finds an npm shim rather than a bare executable. The
 adapter must work with whatever it resolves; §10 covers this with a real
 spawn against a stub.
+
+That shim is also why the spawn needs `CREATE_NO_WINDOW`. `claude.cmd` runs
+`cmd.exe` and then `node.exe`, both console-subsystem programs, and Windows
+hands such a child its own new console window whenever the parent has none —
+which is the normal case here, since the app is launched with `pythonw`.
+Redirecting the child's handles does not prevent it: `capture_output` sets the
+handles the child is given, while console allocation is decided by the
+creation flags, so only a flag can suppress the window. The flag leaves the
+child a console, just no window for it, so nothing about the child's own
+behaviour changes.
+
+Testing this needs care: the spawn must come from a console-less parent or
+there is nothing to observe. Under pytest the parent is attached to a console
+(often a ConPTY, whose `GetConsoleWindow` is `0` despite a console being
+present), the child inherits it, and no window is created either way. §10's
+test therefore re-spawns itself with `DETACHED_PROCESS` to reproduce the real
+condition, then asserts the stub child's `GetConsoleWindow()` is `0`.
 
 ## 6. UI — the Refresh button and worker
 

@@ -2,8 +2,11 @@
 import json
 import os
 import stat
+import subprocess
 import sys
 from pathlib import Path
+
+import pytest
 
 from claude_usage.infrastructure.claude_cli import ClaudeCliRefresher, RefreshOutcome
 
@@ -74,3 +77,41 @@ def test_stdin_sees_eof_instead_of_blocking(tmp_path):
     exe = write_stub(tmp_path, "import sys\nsys.stdin.read()\nraise SystemExit(0)")
     refresher = ClaudeCliRefresher(executable=exe, timeout_seconds=10)
     assert refresher.refresh() is RefreshOutcome.REFRESHED
+
+
+@pytest.mark.skipif(os.name != "nt", reason="console windows are a Windows concept")
+def test_child_gets_no_console_window(tmp_path):
+    """A console-subsystem child spawned from a console-less parent is handed
+    a brand-new console window — the terminal that flashes on Refresh. The
+    npm claude.cmd shim is exactly that (cmd.exe, then node.exe), and the app
+    is launched with pythonw, which has no console to inherit.
+
+    The spawn must therefore happen from a console-less parent or the bug is
+    invisible: pytest itself runs attached to a console (often a ConPTY, whose
+    GetConsoleWindow is 0), which the child inherits, so no window is ever
+    created. DETACHED_PROCESS reproduces the real condition faithfully.
+    """
+    log = tmp_path / "console.json"
+    exe = write_stub(
+        tmp_path,
+        "import ctypes, json, pathlib\n"
+        f"pathlib.Path({str(log)!r}).write_text("
+        "json.dumps(ctypes.windll.kernel32.GetConsoleWindow()))\n",
+    )
+    driver = tmp_path / "driver.py"
+    driver.write_text(
+        "import sys\n"
+        "from claude_usage.infrastructure.claude_cli import ClaudeCliRefresher\n"
+        "ClaudeCliRefresher(executable=sys.argv[1]).refresh()\n",
+        encoding="utf-8",
+    )
+    repo_root = Path(__file__).resolve().parents[1]
+    subprocess.run(
+        [sys.executable, str(driver), exe],
+        creationflags=subprocess.DETACHED_PROCESS,
+        cwd=repo_root,
+        env={**os.environ, "PYTHONPATH": str(repo_root)},
+        timeout=120,
+        check=True,
+    )
+    assert json.loads(log.read_text(encoding="utf-8")) == 0
