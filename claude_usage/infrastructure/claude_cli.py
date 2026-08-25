@@ -11,6 +11,14 @@ from enum import Enum
 from typing import Protocol
 
 
+# Windows hands a console-subsystem child its own new console window when
+# the parent has none — the app runs under pythonw, and `claude` resolves
+# to the npm claude.cmd shim, i.e. cmd.exe and then node.exe. Redirecting
+# the child's handles does not prevent that allocation; only a creation
+# flag does. The constant exists on Windows only; 0 is a no-op elsewhere.
+NO_CONSOLE_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+
+
 class RefreshOutcome(Enum):
     REFRESHED = "refreshed"    # process exited 0
     NOT_FOUND = "not_found"    # no claude executable resolved
@@ -45,6 +53,7 @@ class ClaudeCliRefresher:
                 shell=False,
                 stdin=subprocess.DEVNULL,  # a child that prompts must hit EOF
                 capture_output=True,
+                creationflags=NO_CONSOLE_WINDOW,
                 timeout=self._timeout_seconds,
                 check=False,
             )
