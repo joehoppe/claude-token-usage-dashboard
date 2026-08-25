@@ -98,7 +98,6 @@ encoding notes.
 ## Development
 
 ```bash
-pip install -e .
-pip install pytest
+pip install -e ".[test]"
 pytest
 ```

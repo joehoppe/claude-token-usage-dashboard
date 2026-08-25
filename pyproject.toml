@@ -6,6 +6,9 @@ requires-python = ">=3.11"
 license = { file = "LICENSE" }
 dependencies = ["wxPython"]
 
+[project.optional-dependencies]
+test = ["pytest"]
+
 [project.scripts]
 claude-usage = "claude_usage.ui.cli.main:main"
 claude-usage-app = "claude_usage.ui.app.main:main"
