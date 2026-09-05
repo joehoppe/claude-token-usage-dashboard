@@ -62,18 +62,20 @@ jobs:
       # always(): a failing suite still has partial coverage worth showing,
       # and the comment job needs an artifact either way.
       - name: Build coverage summary
-        id: coverage
         if: always() && matrix.os == env.COVERAGE_OS && matrix.python-version == env.COVERAGE_PYTHON
         run: |
           python -m coverage report --format=markdown > coverage-table.md
-          echo "total=$(python -m coverage report --format=total)" >> "$GITHUB_OUTPUT"
+          # Bare integer percentage, e.g. "73" — the headline number.
+          python -m coverage report --format=total > coverage-total.txt
 
       - name: Upload coverage summary
         if: always() && matrix.os == env.COVERAGE_OS && matrix.python-version == env.COVERAGE_PYTHON
         uses: actions/upload-artifact@v7
         with:
           name: coverage-summary
-          path: coverage-table.md
+          path: |
+            coverage-table.md
+            coverage-total.txt
           if-no-files-found: warn
 
   comment:
@@ -120,9 +122,19 @@ jobs:
             HEADLINE="❌ **Tests did not pass** (\`$TEST_RESULT\`). Coverage below reflects the run that failed."
           fi
 
+          # Bare integer, or empty if the reporting leg never produced one.
+          TOTAL=""
+          if [ -f coverage-total.txt ]; then
+            TOTAL="$(tr -cd '0-9' < coverage-total.txt)"
+          fi
+
           {
             printf '%s\n' "$MARKER"
-            printf '### Coverage\n\n'
+            if [ -n "$TOTAL" ]; then
+              printf '### Coverage: %s%%\n\n' "$TOTAL"
+            else
+              printf '### Coverage\n\n'
+            fi
             printf '%s\n\n' "$HEADLINE"
             if [ -f coverage-table.md ]; then
               printf '<details><summary>Per-file coverage</summary>\n\n'
