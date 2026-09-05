@@ -9,7 +9,6 @@ import struct
 import sys
 
 import pytest
-import wx
 
 from claude_usage.ui.app.icon import (
     APP_USER_MODEL_ID,
@@ -30,11 +29,6 @@ WINDOWS_ICON_SLOTS = (16, 32)
 # SetCurrentProcessExplicitAppUserModelID rejects longer ids and ids with
 # spaces: https://learn.microsoft.com/windows/win32/shell/appids
 MAX_APP_USER_MODEL_ID_LENGTH = 128
-
-
-@pytest.fixture(scope="session")
-def wx_app():
-    return wx.App()
 
 
 def source_png_edge() -> int:

@@ -7,7 +7,9 @@ license = { file = "LICENSE" }
 dependencies = ["wxPython"]
 
 [project.optional-dependencies]
-test = ["pytest"]
+# pytest-cov is MIT; the coverage.py it pulls in is Apache-2.0. Both sit
+# inside the licence allowlist in AGENTS.md.
+test = ["pytest", "pytest-cov"]
 
 [project.scripts]
 claude-usage = "claude_usage.ui.cli.main:main"
@@ -26,3 +28,19 @@ include = ["claude_usage*"]
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
+# An unregistered marker is a typo, not a feature: without this a
+# misspelled @pytest.mark.skipif silently never skips anything.
+addopts = "--strict-markers"
+
+[tool.coverage.run]
+source = ["claude_usage"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]
