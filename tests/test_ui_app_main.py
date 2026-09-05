@@ -4,15 +4,9 @@ The real-app test needs a wx.App — SetAppearance is a method on the live app
 object — but no window is ever created or shown. The contract tests run
 against plain fakes with no wx object at all.
 """
-import pytest
 import wx
 
 from claude_usage.ui.app.main import _enable_dark_titlebar
-
-
-@pytest.fixture(scope="session")
-def wx_app():
-    return wx.App()
 
 
 class RecordingApp:

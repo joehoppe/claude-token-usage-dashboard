@@ -1,0 +1,150 @@
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# A fresh push makes the in-flight run for that ref obsolete. Cancel it
+# rather than paying for a result nobody will read.
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+# Least privilege by default; the comment job widens this for itself.
+permissions:
+  contents: read
+
+env:
+  # The one matrix leg that produces the coverage numbers, so a PR gets a
+  # single comment instead of one per leg.
+  COVERAGE_OS: macos-latest
+  COVERAGE_PYTHON: "3.13"
+
+jobs:
+  test:
+    name: ${{ matrix.os }} / py${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # One platform failing should not hide the state of the other.
+      fail-fast: false
+      matrix:
+        # Linux is absent on purpose: wxPython ships no Linux wheel on
+        # PyPI, and the app supports macOS and Windows only.
+        os: [macos-latest, windows-latest]
+        # 3.11 is the floor declared in pyproject; 3.13 is current. Testing
+        # the floor is what keeps requires-python honest.
+        python-version: ["3.11", "3.13"]
+
+    defaults:
+      run:
+        # Windows runners default to pwsh; pin bash everywhere so one
+        # script works on every leg.
+        shell: bash
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[test]"
+
+      - name: Run tests
+        run: python -m pytest --cov --cov-report=term-missing
+
+      # always(): a failing suite still has partial coverage worth showing,
+      # and the comment job needs an artifact either way.
+      - name: Build coverage summary
+        id: coverage
+        if: always() && matrix.os == env.COVERAGE_OS && matrix.python-version == env.COVERAGE_PYTHON
+        run: |
+          python -m coverage report --format=markdown > coverage-table.md
+          echo "total=$(python -m coverage report --format=total)" >> "$GITHUB_OUTPUT"
+
+      - name: Upload coverage summary
+        if: always() && matrix.os == env.COVERAGE_OS && matrix.python-version == env.COVERAGE_PYTHON
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-summary
+          path: coverage-table.md
+          if-no-files-found: warn
+
+  comment:
+    name: Coverage comment
+    needs: test
+    # always(): report coverage on a red suite too — that is when the
+    # numbers are most worth seeing.
+    #
+    # The head-repo check skips forks: a pull_request from a fork gets a
+    # read-only GITHUB_TOKEN, so posting would fail. Routing fork PRs
+    # through a workflow_run companion is the fix if this repo ever takes
+    # outside contributions.
+    if: >-
+      always()
+      && github.event_name == 'pull_request'
+      && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: coverage-summary
+        continue-on-error: true
+
+      - name: Post or update the sticky comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          TEST_RESULT: ${{ needs.test.result }}
+        run: |
+          set -euo pipefail
+
+          # Identifies our own comment on re-runs so the PR accumulates
+          # one updated comment instead of one per push.
+          MARKER='<!-- claude-usage-coverage-report -->'
+
+          if [ "$TEST_RESULT" = "success" ]; then
+            HEADLINE='✅ **Tests passed** on macOS and Windows (Python 3.11 and 3.13).'
+          else
+            HEADLINE="❌ **Tests did not pass** (\`$TEST_RESULT\`). Coverage below reflects the run that failed."
+          fi
+
+          {
+            printf '%s\n' "$MARKER"
+            printf '### Coverage\n\n'
+            printf '%s\n\n' "$HEADLINE"
+            if [ -f coverage-table.md ]; then
+              printf '<details><summary>Per-file coverage</summary>\n\n'
+              cat coverage-table.md
+              printf '\n</details>\n'
+            else
+              printf '_No coverage summary was produced — the reporting leg did not get far enough._\n'
+            fi
+            printf '\n<sub>Reported from %s / py%s. Coverage is informational; no threshold is enforced.</sub>\n' \
+              "${COVERAGE_OS:-macos-latest}" "${COVERAGE_PYTHON:-3.13}"
+          } > body.md
+
+          # --paginate applies --jq per page, so this can emit one id per
+          # page; head keeps the first and only match.
+          existing=$(gh api --paginate "repos/$REPO/issues/$PR/comments" \
+            --jq "[.[] | select(.body | contains(\"$MARKER\"))] | first | .id // empty" \
+            | head -n 1)
+
+          if [ -n "$existing" ]; then
+            gh api -X PATCH "repos/$REPO/issues/comments/$existing" -F body=@body.md >/dev/null
+            echo "Updated comment $existing"
+          else
+            gh api -X POST "repos/$REPO/issues/$PR/comments" -F body=@body.md >/dev/null
+            echo "Created a new coverage comment"
+          fi
