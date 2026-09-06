@@ -5,6 +5,7 @@ nothing appears on screen. The expected size is asserted against literals
 rather than the module's own constant — importing the constant would make
 the assertion agree with any value frame.py happens to hold.
 """
+
 import pytest
 import wx
 
