@@ -1,13 +1,14 @@
 """QuotaFrame startup-size tests.
 
-Constructing a frame needs a wx.App, but the frame is never Show()n, so
-nothing appears on screen. The expected size is asserted against literals
+Constructing a frame needs a wx.App — conftest's shared `wx_app`, never a
+local one: a same-named module fixture is a *distinct* fixture and would
+build a second app in the process. The frame is never Show()n, so nothing
+appears on screen. The expected size is asserted against literals
 rather than the module's own constant — importing the constant would make
 the assertion agree with any value frame.py happens to hold.
 """
 
 import pytest
-import wx
 
 from claude_usage.ui.app.frame import QuotaFrame
 from claude_usage.ui.app.presenter import BarView, QuotaView
@@ -37,11 +38,6 @@ def make_view(bars=3):
         message=None,
         message_detail=None,
     )
-
-
-@pytest.fixture(scope="session")
-def wx_app():
-    return wx.App()
 
 
 @pytest.fixture
