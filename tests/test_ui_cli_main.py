@@ -44,7 +44,7 @@ def test_no_quota_key_exits_one_with_stderr(tmp_path, capsys):
     path = tmp_path / "claude.json"
     path.write_text(json.dumps({"oauthAccount": {}}), encoding="utf-8")
     code = main(["--path", str(path)])
-    out, err = capsys.readouterr()
+    _, err = capsys.readouterr()
     assert code == 1
     assert err.strip() == "No quota data cached yet — open /usage in Claude Code"
 
@@ -53,7 +53,7 @@ def test_read_error_exits_one_with_detail_in_stderr(tmp_path, capsys):
     path = tmp_path / "claude.json"
     path.write_text("{not json", encoding="utf-8")
     code = main(["--path", str(path)])
-    out, err = capsys.readouterr()
+    _, err = capsys.readouterr()
     assert code == 1
     assert "Couldn't read quota data" in err
     assert "JSONDecodeError" in err

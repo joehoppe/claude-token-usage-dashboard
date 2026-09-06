@@ -1,12 +1,11 @@
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from claude_usage.domain.quota import QuotaUnavailable
 from claude_usage.infrastructure.claude_json import ClaudeJsonQuotaSource
 from claude_usage.infrastructure.clock import SystemClock
 
-UTC = timezone.utc
 FIXTURE = Path(__file__).parent / "fixtures" / "live_snapshot.json"
 
 
@@ -81,7 +80,7 @@ def test_fixture_parses_measured_at_and_limits():
 
 def test_scope_null_vs_populated():
     reading = ClaudeJsonQuotaSource(FIXTURE).read_quota()
-    session, weekly, scoped = reading.limits
+    session, _weekly, scoped = reading.limits
     assert session.scope_model is None
     assert scoped.scope_model == "Fable"
     assert scoped.is_active is True

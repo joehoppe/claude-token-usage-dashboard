@@ -10,7 +10,6 @@ import subprocess
 from enum import Enum
 from typing import Protocol
 
-
 # Windows hands a console-subsystem child its own new console window when
 # the parent has none — the app runs under pythonw, and `claude` resolves
 # to the npm claude.cmd shim, i.e. cmd.exe and then node.exe. Redirecting
@@ -20,10 +19,13 @@ NO_CONSOLE_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
 
 
 class RefreshOutcome(Enum):
+    # The trailing comments are a column: each outcome against what produced it.
+    # fmt: off
     REFRESHED = "refreshed"    # process exited 0
     NOT_FOUND = "not_found"    # no claude executable resolved
     TIMED_OUT = "timed_out"    # exceeded refresh_timeout_seconds
     FAILED = "failed"          # non-zero exit, or the spawn itself failed
+    # fmt: on
 
 
 class QuotaRefresher(Protocol):

@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from claude_usage.application.ports import Config
 from claude_usage.domain.quota import (
@@ -9,20 +9,19 @@ from claude_usage.domain.quota import (
 )
 from claude_usage.ui.app.presenter import present, present_error
 
-UTC = timezone.utc
 NOW = datetime(2026, 8, 5, 18, 10, tzinfo=UTC)
 
 
 def make_limit(**overrides):
-    defaults = dict(
-        kind="session",
-        group="session",
-        percent=25,
-        severity="normal",
-        is_active=False,
-        resets_at=None,
-        scope_model=None,
-    )
+    defaults = {
+        "kind": "session",
+        "group": "session",
+        "percent": 25,
+        "severity": "normal",
+        "is_active": False,
+        "resets_at": None,
+        "scope_model": None,
+    }
     defaults.update(overrides)
     return LimitReading(**defaults)
 

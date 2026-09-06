@@ -5,15 +5,15 @@ from claude_usage.ui.shared.format import coarse, label_for
 
 
 def make_limit(**overrides):
-    defaults = dict(
-        kind="session",
-        group="session",
-        percent=25,
-        severity="normal",
-        is_active=False,
-        resets_at=None,
-        scope_model=None,
-    )
+    defaults = {
+        "kind": "session",
+        "group": "session",
+        "percent": 25,
+        "severity": "normal",
+        "is_active": False,
+        "resets_at": None,
+        "scope_model": None,
+    }
     defaults.update(overrides)
     return LimitReading(**defaults)
 

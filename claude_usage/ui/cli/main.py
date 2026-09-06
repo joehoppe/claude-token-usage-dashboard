@@ -5,9 +5,8 @@ import argparse
 import json
 import os
 import sys
+from collections.abc import Callable
 from pathlib import Path
-
-from typing import Callable
 
 from claude_usage.application.usage import UsageService
 from claude_usage.domain.quota import QuotaSnapshot, QuotaUnavailable

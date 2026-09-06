@@ -30,16 +30,21 @@ _READ_ERROR_MESSAGE = "Couldn't read quota data"
 
 @dataclass(frozen=True)
 class BarView:
+    # The trailing comments are a column: each field against a worked example.
+    # fmt: off
     label: str               # "Weekly Fable"
     percent: int
     used: int                # percent clamped to 0–100, the number shown (SPEC §7.2)
     severity: str            # "normal" | "warning" | "critical"
     active: bool
     resets_text: str | None  # "resets in 3h"
+    # fmt: on
 
 
 @dataclass(frozen=True)
 class QuotaView:
+    # The trailing comments are a column: each field against a worked example.
+    # fmt: off
     headline: str              # "66% used"
     age_text: str              # "as of 7m ago"
     stale: bool
@@ -47,6 +52,7 @@ class QuotaView:
     notices: tuple[str, ...]
     message: str | None        # set only when there are no bars to show
     message_detail: str | None
+    # fmt: on
 
 
 def present(snapshot: QuotaSnapshot, config: Config) -> QuotaView:
