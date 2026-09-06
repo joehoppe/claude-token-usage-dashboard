@@ -17,6 +17,11 @@ from claude_usage.ui.app.presenter import QuotaView
 from claude_usage.ui.app.refresh import HELP_TOOLTIP
 
 _MIN_WIDTH = 240
+# Opening size of the window. Narrow on purpose: this is a glanceable side
+# panel meant to park beside real work, not a document window. The height is
+# only a starting guess — _fit_to_content() grows it to whatever the current
+# view needs (see below).
+_DEFAULT_SIZE = (377, 216)
 _BUTTON_MARGIN = 8
 # Extra horizontal breathing room for the exact-fit "?" button.
 _HELP_BUTTON_PADDING = 6
@@ -31,7 +36,7 @@ class QuotaFrame(wx.Frame):
         super().__init__(
             None,
             title="Usage Dashboard for Claude",
-            size=(420, 220),
+            size=_DEFAULT_SIZE,
             style=wx.DEFAULT_FRAME_STYLE | wx.STAY_ON_TOP,
         )
         self.SetBackgroundColour(wx.Colour(*theme.BACKGROUND))
