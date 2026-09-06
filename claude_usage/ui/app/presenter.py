@@ -1,6 +1,7 @@
 """Pure QuotaSnapshot + Config -> QuotaView. panels.py places strings and
 draws rectangles; it computes nothing — every display decision is made here.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -62,9 +63,7 @@ def present(snapshot: QuotaSnapshot, config: Config) -> QuotaView:
     if quota is None:
         message = _NO_DATA_MESSAGES.get(snapshot.unavailable, _READ_ERROR_MESSAGE)
         message_detail = (
-            snapshot.detail
-            if snapshot.unavailable is QuotaUnavailable.READ_ERROR
-            else None
+            snapshot.detail if snapshot.unavailable is QuotaUnavailable.READ_ERROR else None
         )
         return QuotaView(
             headline="No data",
@@ -81,9 +80,7 @@ def present(snapshot: QuotaSnapshot, config: Config) -> QuotaView:
     notices.extend(quota.promo_notices)
 
     binding = quota.binding()
-    headline = (
-        f"{_used(binding.percent)}% used" if binding else "No limits reported"
-    )
+    headline = f"{_used(binding.percent)}% used" if binding else "No limits reported"
 
     bars = tuple(
         _bar_view(limit, snapshot.captured_at)

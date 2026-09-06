@@ -3,6 +3,7 @@ macOS alert (NSAlert) always stamps the app bundle icon onto the dialog and
 ignores wx.ICON_NONE, so an icon-free dialog has to own its whole surface:
 same forced palette as the main window, wrapped message text, one OK button.
 """
+
 from __future__ import annotations
 
 import wx
@@ -34,8 +35,6 @@ class HelpDialog(wx.Dialog):
         self.SetEscapeId(wx.ID_OK)
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(message, 0, wx.ALL, _PADDING)
-        sizer.Add(
-            ok_button, 0, wx.ALIGN_RIGHT | wx.RIGHT | wx.BOTTOM, _PADDING
-        )
+        sizer.Add(ok_button, 0, wx.ALIGN_RIGHT | wx.RIGHT | wx.BOTTOM, _PADDING)
         self.SetSizerAndFit(sizer)
         self.CentreOnParent()

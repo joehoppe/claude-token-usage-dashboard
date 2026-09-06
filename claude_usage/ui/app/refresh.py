@@ -2,6 +2,7 @@
 and re-read run off the GUI thread, and only frozen data crosses back, via
 call_after (wx.CallAfter in production, injectable for tests).
 """
+
 from __future__ import annotations
 
 import threading

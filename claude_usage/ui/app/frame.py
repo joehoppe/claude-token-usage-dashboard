@@ -3,6 +3,7 @@ Refresh/help buttons), then bar rows and footer via QuotaPanel. STAY_ON_TOP,
 resizable, never steals focus on refresh (refresh only repaints — it never
 calls Raise()/SetFocus()).
 """
+
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -69,9 +70,7 @@ class QuotaFrame(wx.Frame):
             # dialog for click) — it must be visible before the first click,
             # so it cannot live on the Refresh button's own tooltip, which
             # end_refresh() overwrites with failure outcomes.
-            self._help_button = wx.Button(
-                self, label="?", style=wx.BU_EXACTFIT
-            )
+            self._help_button = wx.Button(self, label="?", style=wx.BU_EXACTFIT)
             # BU_EXACTFIT hugs the "?" glyph too tightly to read as a button,
             # so widen it a little without touching the exact-fit height.
             help_size = self._help_button.GetBestSize()

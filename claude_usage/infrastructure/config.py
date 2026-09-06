@@ -1,4 +1,5 @@
 """Adapter reading claude-usage's config.toml. Read-only; the app never writes it."""
+
 from __future__ import annotations
 
 import tomllib
@@ -33,9 +34,7 @@ class TomlConfigSource:
 
         warnings: list[str] = []
         poll_seconds = _read_int(data, "poll_seconds", 10, _POLL_SECONDS_RANGE, warnings)
-        stale_minutes = _read_int(
-            data, "stale_after_minutes", 15, _STALE_MINUTES_RANGE, warnings
-        )
+        stale_minutes = _read_int(data, "stale_after_minutes", 15, _STALE_MINUTES_RANGE, warnings)
         refresh_timeout = _read_int(
             data, "refresh_timeout_seconds", 60, _REFRESH_TIMEOUT_RANGE, warnings
         )
@@ -49,9 +48,7 @@ class TomlConfigSource:
         )
 
 
-def _read_int(
-    data: dict, key: str, default: int, valid_range: range, warnings: list[str]
-) -> int:
+def _read_int(data: dict, key: str, default: int, valid_range: range, warnings: list[str]) -> int:
     if key not in data:
         return default
     value = data[key]

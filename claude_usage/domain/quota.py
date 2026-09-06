@@ -1,4 +1,5 @@
 """Quota domain entities. Standard library only — no I/O, no wx, no ANSI."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -55,7 +56,7 @@ class QuotaSnapshot:
     quota: QuotaReading | None
     is_stale: bool
     unavailable: QuotaUnavailable | None = None
-    detail: str | None = None      # e.g. "JSONDecodeError"; never a file path or payload
+    detail: str | None = None  # e.g. "JSONDecodeError"; never a file path or payload
 
 
 def time_remaining(resets_at: datetime | None, now: datetime) -> timedelta | None:

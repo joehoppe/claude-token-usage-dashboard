@@ -30,9 +30,7 @@ def make_limit(**overrides):
 
 
 def make_reading(limits=(), measured_at=MEASURED):
-    return QuotaReading(
-        measured_at=measured_at, limits=tuple(limits), promo_notices=()
-    )
+    return QuotaReading(measured_at=measured_at, limits=tuple(limits), promo_notices=())
 
 
 def test_stale_after_is_15_minutes():

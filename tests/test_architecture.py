@@ -1,4 +1,5 @@
 """Encodes the spec's greppable import discipline (POC spec §4)."""
+
 import re
 from pathlib import Path
 

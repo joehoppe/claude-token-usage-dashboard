@@ -2,6 +2,7 @@
 Coordination uses events with timeouts, never sleep(). Importing refresh.py
 imports the wx module (for the call_after default); no widget is created.
 """
+
 import threading
 
 from claude_usage.infrastructure.claude_cli import RefreshOutcome
@@ -87,10 +88,10 @@ def test_start_refuses_reentry_while_in_flight():
     deliver = RecordingDeliver()
     worker, _ = make_worker(refresher, deliver)
     assert worker.start() is True
-    assert worker.start() is False       # programmatic double-fire: refused
+    assert worker.start() is False  # programmatic double-fire: refused
     gate.set()
     assert deliver.done.wait(timeout=5)
-    assert refresher.calls == 1          # the refusal spawned nothing
+    assert refresher.calls == 1  # the refusal spawned nothing
 
 
 def test_start_works_again_after_completion():

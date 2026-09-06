@@ -1,4 +1,5 @@
 """Formatting helpers shared by both drivers. Pure — no wx, no ANSI."""
+
 from __future__ import annotations
 
 from datetime import timedelta

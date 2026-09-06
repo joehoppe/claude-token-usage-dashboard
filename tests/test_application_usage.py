@@ -72,9 +72,7 @@ def test_configured_stale_threshold_is_honoured():
 
 def test_no_file_never_falls_back():
     good = make_reading(NOW - timedelta(minutes=5))
-    source = ScriptedQuotaSource(
-        [(good, None), (QuotaUnavailable.NO_FILE, None)]
-    )
+    source = ScriptedQuotaSource([(good, None), (QuotaUnavailable.NO_FILE, None)])
     service = UsageService(source, FrozenClock(NOW))
     service.snapshot()  # primes last-good-reading
     snapshot = service.snapshot()
@@ -85,9 +83,7 @@ def test_no_file_never_falls_back():
 
 def test_no_quota_key_never_falls_back():
     good = make_reading(NOW - timedelta(minutes=5))
-    source = ScriptedQuotaSource(
-        [(good, None), (QuotaUnavailable.NO_QUOTA_KEY, None)]
-    )
+    source = ScriptedQuotaSource([(good, None), (QuotaUnavailable.NO_QUOTA_KEY, None)])
     service = UsageService(source, FrozenClock(NOW))
     service.snapshot()
     snapshot = service.snapshot()
@@ -97,9 +93,7 @@ def test_no_quota_key_never_falls_back():
 
 def test_read_error_falls_back_to_prior_reading_with_original_measured_at():
     good = make_reading(NOW - timedelta(minutes=5))
-    source = ScriptedQuotaSource(
-        [(good, None), (QuotaUnavailable.READ_ERROR, "JSONDecodeError")]
-    )
+    source = ScriptedQuotaSource([(good, None), (QuotaUnavailable.READ_ERROR, "JSONDecodeError")])
     service = UsageService(source, FrozenClock(NOW))
     service.snapshot()
     snapshot = service.snapshot()

@@ -159,9 +159,7 @@ def test_malformed_promos_give_empty_tuple(tmp_path):
         tmp_path,
         {
             "cachedUsageUtilization": {"fetchedAtMs": 1785953100000, "utilization": {}},
-            "cachedGrowthBookFeatures": {
-                "tengu_rate_limit_promo_notices": "not-a-list"
-            },
+            "cachedGrowthBookFeatures": {"tengu_rate_limit_promo_notices": "not-a-list"},
         },
     )
     assert ClaudeJsonQuotaSource(path).read_quota().promo_notices == ()
