@@ -20,7 +20,7 @@ claude-usage = "claude_usage.ui.cli.main:main"
 claude-usage-app = "claude_usage.ui.app.main:main"
 
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=84.0.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
