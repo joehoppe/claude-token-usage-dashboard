@@ -1,6 +1,7 @@
 """Background poller. All file I/O and presenter logic run off the GUI
 thread; only the frozen QuotaView crosses, via wx.CallAfter.
 """
+
 from __future__ import annotations
 
 import threading

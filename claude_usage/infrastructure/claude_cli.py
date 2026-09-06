@@ -3,6 +3,7 @@ own quota cache. This project never writes ~/.claude.json — only the child
 does. Captured child output is discarded, never logged: it may contain
 account details.
 """
+
 from __future__ import annotations
 
 import shutil

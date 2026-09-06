@@ -5,6 +5,7 @@ all display decisions were already made by presenter.present().
 Colors come from theme.py and are painted explicitly so the window looks the
 same on every platform instead of inheriting OS widget colors.
 """
+
 from __future__ import annotations
 
 import wx
@@ -17,14 +18,12 @@ _TEXT_PRIMARY = wx.Colour(*theme.TEXT_PRIMARY)
 _TEXT_SECONDARY = wx.Colour(*theme.TEXT_SECONDARY)
 _TRACK_COLOR = wx.Colour(*theme.TRACK)
 _STALE_COLOR = wx.Colour(*theme.STALE_FILL)
-_SEVERITY_COLORS = {
-    severity: wx.Colour(*rgb) for severity, rgb in theme.SEVERITY_FILLS.items()
-}
+_SEVERITY_COLORS = {severity: wx.Colour(*rgb) for severity, rgb in theme.SEVERITY_FILLS.items()}
 _BAR_HEIGHT = 18
 _ROW_HEIGHT = 40
 _MARGIN = 8
-_LINE_HEIGHT = 18     # message lines
-_NOTICE_HEIGHT = 16   # footer notice lines
+_LINE_HEIGHT = 18  # message lines
+_NOTICE_HEIGHT = 16  # footer notice lines
 
 
 class QuotaPanel(wx.Panel):
@@ -73,13 +72,13 @@ class QuotaPanel(wx.Panel):
             dc.SetTextForeground(_TEXT_SECONDARY)
             dc.DrawText(view.message_detail, _MARGIN, y + 18)
 
-    def _draw_bar(
-        self, dc: wx.DC, bar: BarView, y: int, *, greyed: bool
-    ) -> int:
+    def _draw_bar(self, dc: wx.DC, bar: BarView, y: int, *, greyed: bool) -> int:
         width = max(0, self.GetClientSize().width - 2 * _MARGIN)
         filled = int(width * max(0, min(100, bar.percent)) / 100)
-        color = _STALE_COLOR if greyed else _SEVERITY_COLORS.get(
-            bar.severity, _SEVERITY_COLORS["critical"]
+        color = (
+            _STALE_COLOR
+            if greyed
+            else _SEVERITY_COLORS.get(bar.severity, _SEVERITY_COLORS["critical"])
         )
         dc.SetPen(wx.TRANSPARENT_PEN)
         dc.SetBrush(wx.Brush(_TRACK_COLOR))

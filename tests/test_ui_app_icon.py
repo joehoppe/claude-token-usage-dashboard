@@ -4,6 +4,7 @@ The bundle tests need a wx.App — wx.Image refuses to decode a PNG without
 one — but no window is ever created or shown. Everything else runs with no
 wx object at all.
 """
+
 import ctypes
 import struct
 import sys
@@ -84,9 +85,7 @@ def test_set_app_user_model_id_registers_the_id_with_the_shell():
     set_app_user_model_id()
 
     registered = ctypes.c_wchar_p()
-    result = ctypes.windll.shell32.GetCurrentProcessExplicitAppUserModelID(
-        ctypes.byref(registered)
-    )
+    result = ctypes.windll.shell32.GetCurrentProcessExplicitAppUserModelID(ctypes.byref(registered))
 
     assert result == 0
     assert registered.value == APP_USER_MODEL_ID

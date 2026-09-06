@@ -13,6 +13,7 @@ SystemExit and the run fails loudly. That is the behaviour CI wants.
 Skipping instead would turn a GUI toolkit that never loaded into a green
 build.
 """
+
 import pytest
 import wx
 

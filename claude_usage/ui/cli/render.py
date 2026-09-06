@@ -1,4 +1,5 @@
 """Pure QuotaSnapshot -> str. No I/O; the caller prints."""
+
 from __future__ import annotations
 
 from datetime import datetime, tzinfo
@@ -73,9 +74,7 @@ def render(
     if quota.limits:
         for limit in quota.limits:
             lines.append(
-                render_row(
-                    limit, snapshot.captured_at, color=color, ascii_glyphs=ascii_glyphs
-                )
+                render_row(limit, snapshot.captured_at, color=color, ascii_glyphs=ascii_glyphs)
             )
     else:
         lines.append("  no limits reported")

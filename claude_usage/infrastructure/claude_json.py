@@ -1,4 +1,5 @@
 """Adapter over ~/.claude.json. Read-only; never touches accountUuid."""
+
 from __future__ import annotations
 
 import json

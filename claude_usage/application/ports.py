@@ -1,4 +1,5 @@
 """Ports the application ring declares; infrastructure conforms structurally."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass

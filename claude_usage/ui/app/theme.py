@@ -3,6 +3,7 @@ never inherit the OS widget colors (dark on macOS dark-mode, light on
 Windows). Plain RGB tuples, no wx, so contrast rules are testable headless;
 panels.py converts to wx.Colour at the edge.
 """
+
 from __future__ import annotations
 
 BACKGROUND = (30, 30, 30)
