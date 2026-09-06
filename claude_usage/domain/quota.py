@@ -9,9 +9,12 @@ STALE_AFTER = timedelta(minutes=15)
 
 
 class QuotaUnavailable(Enum):
+    # The trailing comments are a column: each member against what it means.
+    # fmt: off
     NO_FILE = "no_file"            # ~/.claude.json absent
     NO_QUOTA_KEY = "no_quota_key"  # file readable, cachedUsageUtilization absent/invalid
     READ_ERROR = "read_error"      # OSError, JSONDecodeError, unusable fetchedAtMs
+    # fmt: on
 
 
 @dataclass(frozen=True)

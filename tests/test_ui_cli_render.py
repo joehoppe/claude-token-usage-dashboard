@@ -1,29 +1,31 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
+from pathlib import Path
 
 import pytest
 
+from claude_usage.application.usage import UsageService
 from claude_usage.domain.quota import (
     LimitReading,
     QuotaReading,
     QuotaSnapshot,
     QuotaUnavailable,
 )
+from claude_usage.infrastructure.claude_json import ClaudeJsonQuotaSource
 from claude_usage.ui.cli.render import bar, render, render_row
 
-UTC = timezone.utc
 NOW = datetime(2026, 8, 5, 18, 10, tzinfo=UTC)
 
 
 def make_limit(**overrides):
-    defaults = dict(
-        kind="session",
-        group="session",
-        percent=25,
-        severity="normal",
-        is_active=False,
-        resets_at=None,
-        scope_model=None,
-    )
+    defaults = {
+        "kind": "session",
+        "group": "session",
+        "percent": 25,
+        "severity": "normal",
+        "is_active": False,
+        "resets_at": None,
+        "scope_model": None,
+    }
     defaults.update(overrides)
     return LimitReading(**defaults)
 
@@ -179,11 +181,6 @@ def test_render_read_error_with_fallback_appends_note():
 # Expected string built with explicit " " * n so column widths are unambiguous:
 # rows are "  " + label.ljust(20) + marker.ljust(10) + pct.rjust(4)
 #          + "  " + bar + "  resets in X".
-
-from pathlib import Path
-
-from claude_usage.application.usage import UsageService
-from claude_usage.infrastructure.claude_json import ClaudeJsonQuotaSource
 
 FIXTURE = Path(__file__).parent / "fixtures" / "live_snapshot.json"
 

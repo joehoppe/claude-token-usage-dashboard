@@ -67,6 +67,33 @@ If you want to propose using a package that is not listed above, ask for explici
   one real obligation: modifications to wxWidgets/wxPython source itself, if
   distributed, must ship their source. Do not prompt again for wxPython.
 
+## Linting
+
+ruff is both the linter and the formatter. Install it with the `dev` extra
+and run both halves before proposing a change:
+
+```bash
+pip install -e ".[dev]"
+ruff check .          # add --fix to apply the safe fixes
+ruff format .
+```
+
+CI runs the same two commands (`.github/workflows/lint.yml`), with
+`ruff format --diff` in place of the rewrite, so unformatted code fails the
+build rather than landing.
+
+Configuration lives in `pyproject.toml`. Two notes on it:
+
+- The version is pinned exactly, and CI greps that pin out of the file. It
+  is the only copy — do not add a second one to the workflow.
+- `sample/` is excluded. It is a standalone illustration of the architecture
+  that nothing imports and nothing packages.
+
+Reach for a `# noqa` only when the rule is wrong about a specific line, and
+say why on the same line. If a rule is wrong about the codebase as a whole,
+it belongs in `ignore` or `per-file-ignores` with a comment, not scattered
+across the files it misjudges.
+
 ## Spec Documents
 
 Markdown spec documents should be saved in the folder in which it will likely be implemented, and committed alongside the code.

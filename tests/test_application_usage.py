@@ -1,9 +1,8 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from claude_usage.application.usage import UsageService
 from claude_usage.domain.quota import QuotaReading, QuotaUnavailable
 
-UTC = timezone.utc
 NOW = datetime(2026, 8, 5, 18, 10, tzinfo=UTC)
 
 

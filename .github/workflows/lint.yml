@@ -1,0 +1,49 @@
+name: Lint
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# A fresh push makes the in-flight run for that ref obsolete. Cancel it
+# rather than paying for a result nobody will read.
+concurrency:
+  group: lint-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  ruff:
+    name: ruff
+    # Lint is platform-independent, so it runs on the cheapest runner
+    # rather than repeating itself across the test matrix. Linux is
+    # available here precisely because nothing below imports the package.
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      # Deliberately not `pip install -e ".[dev]"`: that resolves the
+      # project's own dependencies, and wxPython ships no Linux wheel — pip
+      # would try to build it from source and fail. ruff analyses source
+      # statically and never imports the code, so it needs none of that.
+      #
+      # The pin is read back out of pyproject.toml so that file stays the
+      # single place the version lives; a malformed or missing pin makes
+      # grep print nothing and the install fail loudly.
+      - name: Install ruff
+        run: pip install "$(grep -oE 'ruff==[0-9.]+' pyproject.toml)"
+
+      - name: ruff check
+        run: ruff check --output-format=github .
+
+      # --diff reports formatting drift without rewriting the tree, and
+      # prints what it would have changed so the fix is visible in the log.
+      - name: ruff format
+        run: ruff format --diff .
