@@ -101,3 +101,11 @@ encoding notes.
 pip install -e ".[test]"
 pytest
 ```
+
+Linting and formatting use [ruff](https://docs.astral.sh/ruff/):
+
+```bash
+pip install -e ".[dev]"
+ruff check .
+ruff format .
+```

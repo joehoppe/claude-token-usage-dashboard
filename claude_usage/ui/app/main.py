@@ -1,6 +1,7 @@
 """Composition root: config + adapters -> UsageService -> PollerThread ->
 QuotaFrame -> wx.MainLoop. Config is read once at startup, not per poll.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -27,11 +28,15 @@ def build_parser() -> argparse.ArgumentParser:
         description="Always-on-top window showing Claude Code quota usage.",
     )
     parser.add_argument(
-        "--path", type=Path, default=None,
+        "--path",
+        type=Path,
+        default=None,
         help="read an alternate .claude.json (fixtures, testing)",
     )
     parser.add_argument(
-        "--config", type=Path, default=None,
+        "--config",
+        type=Path,
+        default=None,
         help="read an alternate config.toml (fixtures, testing)",
     )
     return parser
@@ -103,7 +108,7 @@ def main(argv: list[str] | None = None) -> int:
     dock_icon = attach_app_icon(frame)
 
     frame.show_view(poller.refresh_once())  # one synchronous pass first —
-    poller.start()                          # the window never flashes empty
+    poller.start()  # the window never flashes empty
     frame.Show()
     app.MainLoop()
 

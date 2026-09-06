@@ -1,6 +1,7 @@
 """Pure QuotaSnapshot + Config -> QuotaView. panels.py places strings and
 draws rectangles; it computes nothing — every display decision is made here.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -30,16 +31,21 @@ _READ_ERROR_MESSAGE = "Couldn't read quota data"
 
 @dataclass(frozen=True)
 class BarView:
+    # The trailing comments are a column: each field against a worked example.
+    # fmt: off
     label: str               # "Weekly Fable"
     percent: int
     used: int                # percent clamped to 0–100, the number shown (SPEC §7.2)
     severity: str            # "normal" | "warning" | "critical"
     active: bool
     resets_text: str | None  # "resets in 3h"
+    # fmt: on
 
 
 @dataclass(frozen=True)
 class QuotaView:
+    # The trailing comments are a column: each field against a worked example.
+    # fmt: off
     headline: str              # "66% used"
     age_text: str              # "as of 7m ago"
     stale: bool
@@ -47,6 +53,7 @@ class QuotaView:
     notices: tuple[str, ...]
     message: str | None        # set only when there are no bars to show
     message_detail: str | None
+    # fmt: on
 
 
 def present(snapshot: QuotaSnapshot, config: Config) -> QuotaView:
@@ -56,9 +63,7 @@ def present(snapshot: QuotaSnapshot, config: Config) -> QuotaView:
     if quota is None:
         message = _NO_DATA_MESSAGES.get(snapshot.unavailable, _READ_ERROR_MESSAGE)
         message_detail = (
-            snapshot.detail
-            if snapshot.unavailable is QuotaUnavailable.READ_ERROR
-            else None
+            snapshot.detail if snapshot.unavailable is QuotaUnavailable.READ_ERROR else None
         )
         return QuotaView(
             headline="No data",
@@ -75,9 +80,7 @@ def present(snapshot: QuotaSnapshot, config: Config) -> QuotaView:
     notices.extend(quota.promo_notices)
 
     binding = quota.binding()
-    headline = (
-        f"{_used(binding.percent)}% used" if binding else "No limits reported"
-    )
+    headline = f"{_used(binding.percent)}% used" if binding else "No limits reported"
 
     bars = tuple(
         _bar_view(limit, snapshot.captured_at)

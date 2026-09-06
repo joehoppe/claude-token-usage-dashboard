@@ -5,15 +5,15 @@ from claude_usage.ui.shared.format import coarse, label_for
 
 
 def make_limit(**overrides):
-    defaults = dict(
-        kind="session",
-        group="session",
-        percent=25,
-        severity="normal",
-        is_active=False,
-        resets_at=None,
-        scope_model=None,
-    )
+    defaults = {
+        "kind": "session",
+        "group": "session",
+        "percent": 25,
+        "severity": "normal",
+        "is_active": False,
+        "resets_at": None,
+        "scope_model": None,
+    }
     defaults.update(overrides)
     return LimitReading(**defaults)
 
@@ -21,16 +21,15 @@ def make_limit(**overrides):
 def test_known_kind_labels():
     assert label_for(make_limit(kind="session")) == "Session (5hr)"
     assert label_for(make_limit(kind="weekly_all")) == "Weekly (7 day)"
-    assert label_for(
-        make_limit(kind="weekly_scoped", scope_model="Fable")
-    ) == "Weekly Fable"
+    assert label_for(make_limit(kind="weekly_scoped", scope_model="Fable")) == "Weekly Fable"
 
 
 def test_unknown_kind_falls_back_without_crashing():
     assert label_for(make_limit(kind="monthly_all")) == "Monthly All"
-    assert label_for(
-        make_limit(kind="monthly_scoped", scope_model="Sonnet")
-    ) == "Monthly Scoped Sonnet"
+    assert (
+        label_for(make_limit(kind="monthly_scoped", scope_model="Sonnet"))
+        == "Monthly Scoped Sonnet"
+    )
 
 
 def test_coarse_units():

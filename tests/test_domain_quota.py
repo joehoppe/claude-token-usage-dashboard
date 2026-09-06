@@ -1,5 +1,5 @@
 import dataclasses
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -12,28 +12,25 @@ from claude_usage.domain.quota import (
     time_remaining,
 )
 
-UTC = timezone.utc
 MEASURED = datetime(2026, 8, 5, 18, 5, tzinfo=UTC)
 
 
 def make_limit(**overrides):
-    defaults = dict(
-        kind="session",
-        group="session",
-        percent=25,
-        severity="normal",
-        is_active=False,
-        resets_at=None,
-        scope_model=None,
-    )
+    defaults = {
+        "kind": "session",
+        "group": "session",
+        "percent": 25,
+        "severity": "normal",
+        "is_active": False,
+        "resets_at": None,
+        "scope_model": None,
+    }
     defaults.update(overrides)
     return LimitReading(**defaults)
 
 
 def make_reading(limits=(), measured_at=MEASURED):
-    return QuotaReading(
-        measured_at=measured_at, limits=tuple(limits), promo_notices=()
-    )
+    return QuotaReading(measured_at=measured_at, limits=tuple(limits), promo_notices=())
 
 
 def test_stale_after_is_15_minutes():

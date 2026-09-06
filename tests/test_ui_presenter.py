@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from claude_usage.application.ports import Config
 from claude_usage.domain.quota import (
@@ -9,34 +9,37 @@ from claude_usage.domain.quota import (
 )
 from claude_usage.ui.app.presenter import present, present_error
 
-UTC = timezone.utc
 NOW = datetime(2026, 8, 5, 18, 10, tzinfo=UTC)
 
 
 def make_limit(**overrides):
-    defaults = dict(
-        kind="session",
-        group="session",
-        percent=25,
-        severity="normal",
-        is_active=False,
-        resets_at=None,
-        scope_model=None,
-    )
+    defaults = {
+        "kind": "session",
+        "group": "session",
+        "percent": 25,
+        "severity": "normal",
+        "is_active": False,
+        "resets_at": None,
+        "scope_model": None,
+    }
     defaults.update(overrides)
     return LimitReading(**defaults)
 
 
-def make_snapshot(limits=(), promos=(), measured_at=None, is_stale=False,
-                  unavailable=None, detail=None):
+def make_snapshot(
+    limits=(), promos=(), measured_at=None, is_stale=False, unavailable=None, detail=None
+):
     reading = QuotaReading(
         measured_at=measured_at or NOW - timedelta(minutes=5),
         limits=tuple(limits),
         promo_notices=tuple(promos),
     )
     return QuotaSnapshot(
-        captured_at=NOW, quota=reading, is_stale=is_stale,
-        unavailable=unavailable, detail=detail,
+        captured_at=NOW,
+        quota=reading,
+        is_stale=is_stale,
+        unavailable=unavailable,
+        detail=detail,
     )
 
 
@@ -64,9 +67,7 @@ def test_bars_display_session_then_weekly_then_weekly_fable():
     session = make_limit(kind="session", percent=10)
     weekly_all = make_limit(kind="weekly_all", percent=50)
     view = present(make_snapshot([weekly_fable, session, weekly_all]), Config())
-    assert [bar.label for bar in view.bars] == [
-        "Session (5hr)", "Weekly (7 day)", "Weekly Fable"
-    ]
+    assert [bar.label for bar in view.bars] == ["Session (5hr)", "Weekly (7 day)", "Weekly Fable"]
 
 
 def test_unknown_kind_bars_display_after_known_kinds():
@@ -101,7 +102,9 @@ def test_no_file_message():
 
 def test_no_quota_key_message():
     snapshot = QuotaSnapshot(
-        captured_at=NOW, quota=None, is_stale=True,
+        captured_at=NOW,
+        quota=None,
+        is_stale=True,
         unavailable=QuotaUnavailable.NO_QUOTA_KEY,
     )
     view = present(snapshot, Config())
@@ -110,8 +113,11 @@ def test_no_quota_key_message():
 
 def test_read_error_no_history_message_carries_detail():
     snapshot = QuotaSnapshot(
-        captured_at=NOW, quota=None, is_stale=True,
-        unavailable=QuotaUnavailable.READ_ERROR, detail="OSError",
+        captured_at=NOW,
+        quota=None,
+        is_stale=True,
+        unavailable=QuotaUnavailable.READ_ERROR,
+        detail="OSError",
     )
     view = present(snapshot, Config())
     assert view.message == "Couldn't read quota data"
@@ -121,8 +127,10 @@ def test_read_error_no_history_message_carries_detail():
 def test_read_error_with_history_has_no_message_but_shows_bars():
     view = present(
         make_snapshot(
-            [make_limit(percent=50)], is_stale=True,
-            unavailable=QuotaUnavailable.READ_ERROR, detail="OSError",
+            [make_limit(percent=50)],
+            is_stale=True,
+            unavailable=QuotaUnavailable.READ_ERROR,
+            detail="OSError",
         ),
         Config(),
     )
@@ -140,9 +148,7 @@ def test_stale_appends_marker_to_age_text():
 
 def test_promo_and_config_notices_both_present():
     config = Config(warnings=("stale_after_minutes is invalid — using default",))
-    view = present(
-        make_snapshot([make_limit()], promos=["+50% weekly limits promo"]), config
-    )
+    view = present(make_snapshot([make_limit()], promos=["+50% weekly limits promo"]), config)
     assert "stale_after_minutes is invalid — using default" in view.notices
     assert "+50% weekly limits promo" in view.notices
 

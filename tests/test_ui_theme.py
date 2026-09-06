@@ -2,6 +2,7 @@
 
 theme.py is plain RGB data (no wx) precisely so these checks can run headless.
 """
+
 from claude_usage.ui.app import theme
 
 

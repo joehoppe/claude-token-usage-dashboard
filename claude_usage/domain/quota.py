@@ -1,4 +1,5 @@
 """Quota domain entities. Standard library only — no I/O, no wx, no ANSI."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -9,9 +10,12 @@ STALE_AFTER = timedelta(minutes=15)
 
 
 class QuotaUnavailable(Enum):
+    # The trailing comments are a column: each member against what it means.
+    # fmt: off
     NO_FILE = "no_file"            # ~/.claude.json absent
     NO_QUOTA_KEY = "no_quota_key"  # file readable, cachedUsageUtilization absent/invalid
     READ_ERROR = "read_error"      # OSError, JSONDecodeError, unusable fetchedAtMs
+    # fmt: on
 
 
 @dataclass(frozen=True)
@@ -52,7 +56,7 @@ class QuotaSnapshot:
     quota: QuotaReading | None
     is_stale: bool
     unavailable: QuotaUnavailable | None = None
-    detail: str | None = None      # e.g. "JSONDecodeError"; never a file path or payload
+    detail: str | None = None  # e.g. "JSONDecodeError"; never a file path or payload
 
 
 def time_remaining(resets_at: datetime | None, now: datetime) -> timedelta | None:

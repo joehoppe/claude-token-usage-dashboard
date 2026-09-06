@@ -1,8 +1,9 @@
 """Adapter over ~/.claude.json. Read-only; never touches accountUuid."""
+
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from claude_usage.domain.quota import LimitReading, QuotaReading, QuotaUnavailable
@@ -38,7 +39,7 @@ class ClaudeJsonQuotaSource:
         if isinstance(fetched_at_ms, bool) or not isinstance(fetched_at_ms, (int, float)):
             return self._fail(ValueError("fetchedAtMs missing or non-numeric"))
         try:
-            measured_at = datetime.fromtimestamp(fetched_at_ms / 1000, tz=timezone.utc)
+            measured_at = datetime.fromtimestamp(fetched_at_ms / 1000, tz=UTC)
         except (ValueError, OverflowError, OSError) as exc:
             return self._fail(exc)
 
@@ -92,7 +93,7 @@ def _parse_resets_at(value: object) -> datetime | None:
     except ValueError:
         return None
     if parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=timezone.utc)
+        parsed = parsed.replace(tzinfo=UTC)
     return parsed
 
 

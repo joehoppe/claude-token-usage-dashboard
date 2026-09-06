@@ -1,4 +1,5 @@
 """ClaudeCliRefresher spawn tests — always against a stub, never the real claude."""
+
 import json
 import os
 import stat
@@ -25,9 +26,7 @@ def write_stub(tmp_path: Path, body: str) -> str:
         exe.write_text(f'@"{sys.executable}" "{script}" %*\n', encoding="utf-8")
     else:
         exe = tmp_path / "claude"
-        exe.write_text(
-            f'#!/bin/sh\nexec "{sys.executable}" "{script}" "$@"\n', encoding="utf-8"
-        )
+        exe.write_text(f'#!/bin/sh\nexec "{sys.executable}" "{script}" "$@"\n', encoding="utf-8")
         exe.chmod(exe.stat().st_mode | stat.S_IXUSR)
     return str(exe)
 
@@ -49,9 +48,7 @@ def test_timeout_is_timed_out(tmp_path):
 
 
 def test_no_executable_resolved_is_not_found(monkeypatch):
-    monkeypatch.setattr(
-        "claude_usage.infrastructure.claude_cli.shutil.which", lambda name: None
-    )
+    monkeypatch.setattr("claude_usage.infrastructure.claude_cli.shutil.which", lambda name: None)
     assert ClaudeCliRefresher().refresh() is RefreshOutcome.NOT_FOUND
 
 

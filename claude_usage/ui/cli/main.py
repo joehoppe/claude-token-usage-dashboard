@@ -1,13 +1,13 @@
 """Composition root: argparse -> adapters -> UsageService -> render -> print."""
+
 from __future__ import annotations
 
 import argparse
 import json
 import os
 import sys
+from collections.abc import Callable
 from pathlib import Path
-
-from typing import Callable
 
 from claude_usage.application.usage import UsageService
 from claude_usage.domain.quota import QuotaSnapshot, QuotaUnavailable
@@ -27,24 +27,29 @@ def build_parser() -> argparse.ArgumentParser:
         description="Show Claude Code quota usage from the local cache.",
     )
     parser.add_argument(
-        "--json", action="store_true", dest="as_json",
+        "--json",
+        action="store_true",
+        dest="as_json",
         help="emit the snapshot as JSON",
     )
+    parser.add_argument("--no-color", action="store_true", help="suppress ANSI colour")
     parser.add_argument(
-        "--no-color", action="store_true", help="suppress ANSI colour"
-    )
-    parser.add_argument(
-        "--ascii", action="store_true", dest="ascii_glyphs",
+        "--ascii",
+        action="store_true",
+        dest="ascii_glyphs",
         help="ASCII bar and marker glyphs",
     )
     parser.add_argument(
-        "--path", type=Path, default=None,
+        "--path",
+        type=Path,
+        default=None,
         help="read an alternate .claude.json (fixtures, testing)",
     )
     parser.add_argument(
-        "--refresh", action="store_true",
+        "--refresh",
+        action="store_true",
         help=(
-            'refresh quota data first by running the Claude CLI '
+            "refresh quota data first by running the Claude CLI "
             '(claude -p "/usage"); consumes a small amount of quota'
         ),
     )
@@ -70,9 +75,7 @@ def snapshot_to_dict(snapshot: QuotaSnapshot) -> dict:
                     "percent": limit.percent,
                     "severity": limit.severity,
                     "is_active": limit.is_active,
-                    "resets_at": (
-                        limit.resets_at.isoformat() if limit.resets_at else None
-                    ),
+                    "resets_at": (limit.resets_at.isoformat() if limit.resets_at else None),
                     "scope_model": limit.scope_model,
                 }
                 for limit in snapshot.quota.limits
@@ -114,11 +117,7 @@ def main(
     if args.as_json:
         print(json.dumps(snapshot_to_dict(snapshot), indent=2))
         return 0
-    color = (
-        not args.no_color
-        and "NO_COLOR" not in os.environ
-        and sys.stdout.isatty()
-    )
+    color = not args.no_color and "NO_COLOR" not in os.environ and sys.stdout.isatty()
     print(render(snapshot, color=color, ascii_glyphs=args.ascii_glyphs))
     return 0
 

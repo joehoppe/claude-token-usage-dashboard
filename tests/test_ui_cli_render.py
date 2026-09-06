@@ -1,35 +1,36 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
+from pathlib import Path
 
 import pytest
 
+from claude_usage.application.usage import UsageService
 from claude_usage.domain.quota import (
     LimitReading,
     QuotaReading,
     QuotaSnapshot,
     QuotaUnavailable,
 )
+from claude_usage.infrastructure.claude_json import ClaudeJsonQuotaSource
 from claude_usage.ui.cli.render import bar, render, render_row
 
-UTC = timezone.utc
 NOW = datetime(2026, 8, 5, 18, 10, tzinfo=UTC)
 
 
 def make_limit(**overrides):
-    defaults = dict(
-        kind="session",
-        group="session",
-        percent=25,
-        severity="normal",
-        is_active=False,
-        resets_at=None,
-        scope_model=None,
-    )
+    defaults = {
+        "kind": "session",
+        "group": "session",
+        "percent": 25,
+        "severity": "normal",
+        "is_active": False,
+        "resets_at": None,
+        "scope_model": None,
+    }
     defaults.update(overrides)
     return LimitReading(**defaults)
 
 
-def make_snapshot(limits, promos=(), measured_at=NOW - timedelta(minutes=5),
-                  is_stale=False):
+def make_snapshot(limits, promos=(), measured_at=NOW - timedelta(minutes=5), is_stale=False):
     reading = QuotaReading(
         measured_at=measured_at,
         limits=tuple(limits),
@@ -39,6 +40,7 @@ def make_snapshot(limits, promos=(), measured_at=NOW - timedelta(minutes=5),
 
 
 # --- bar ------------------------------------------------------------------
+
 
 def test_bar_fill_rounding():
     assert bar(25) == "████" + "░" * 11
@@ -58,6 +60,7 @@ def test_bar_ascii_glyphs():
 
 
 # --- rows -----------------------------------------------------------------
+
 
 def test_row_without_resets_at_omits_countdown():
     row = render_row(make_limit(resets_at=None), NOW)
@@ -98,6 +101,7 @@ def test_row_no_ansi_when_color_off():
 
 # --- full render ----------------------------------------------------------
 
+
 def test_render_preserves_source_order_not_percent_order():
     snapshot = make_snapshot(
         [
@@ -115,15 +119,11 @@ def test_render_preserves_source_order_not_percent_order():
 
 def test_render_age_line_fresh():
     output = render(make_snapshot([make_limit()]), tz=UTC)
-    assert output.splitlines()[0] == (
-        "USAGE" + " " * 12 + "run 6:10 PM · data 5m ago · fresh"
-    )
+    assert output.splitlines()[0] == ("USAGE" + " " * 12 + "run 6:10 PM · data 5m ago · fresh")
 
 
 def test_render_age_line_stale():
-    snapshot = make_snapshot(
-        [make_limit()], measured_at=NOW - timedelta(hours=3), is_stale=True
-    )
+    snapshot = make_snapshot([make_limit()], measured_at=NOW - timedelta(hours=3), is_stale=True)
     header = render(snapshot, tz=UTC).splitlines()[0]
     assert "run 6:10 PM · data 3h ago · STALE" in header
 
@@ -180,23 +180,22 @@ def test_render_read_error_with_fallback_appends_note():
 # rows are "  " + label.ljust(20) + marker.ljust(10) + pct.rjust(4)
 #          + "  " + bar + "  resets in X".
 
-from pathlib import Path
-
-from claude_usage.application.usage import UsageService
-from claude_usage.infrastructure.claude_json import ClaudeJsonQuotaSource
-
 FIXTURE = Path(__file__).parent / "fixtures" / "live_snapshot.json"
 
 GOLDEN = "\n".join(
     [
         "USAGE" + " " * 12 + "run 6:10 PM · data 5m ago · fresh",
         "",
-        "  Session (5hr)" + " " * 18 + "25%  " + "█" * 4 + "░" * 11
-        + "  resets in 5h",
-        "  Weekly (7 day)" + " " * 17 + "50%  " + "█" * 8 + "░" * 7
+        "  Session (5hr)" + " " * 18 + "25%  " + "█" * 4 + "░" * 11 + "  resets in 5h",
+        "  Weekly (7 day)" + " " * 17 + "50%  " + "█" * 8 + "░" * 7 + "  resets in 1d",
+        "  Weekly Fable"
+        + " " * 8
+        + "● active"
+        + " " * 3
+        + "75%  "
+        + "█" * 11
+        + "░" * 4
         + "  resets in 1d",
-        "  Weekly Fable" + " " * 8 + "● active" + " " * 3 + "75%  "
-        + "█" * 11 + "░" * 4 + "  resets in 1d",
         "",
         "  +50% weekly limits promo through Aug 19 · clau.de/cc-50-promo",
     ]

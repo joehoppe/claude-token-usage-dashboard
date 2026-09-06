@@ -3,6 +3,7 @@ identity on Windows. The Dock requires a wx.adv.TaskBarIcon(TBI_DOCK) —
 frame.SetIcons alone never reaches it — and the caller must hold the
 returned handle or GC removes the tile.
 """
+
 from __future__ import annotations
 
 import ctypes

@@ -10,13 +10,17 @@ dependencies = ["wxPython"]
 # pytest-cov is MIT; the coverage.py it pulls in is Apache-2.0. Both sit
 # inside the licence allowlist in AGENTS.md.
 test = ["pytest", "pytest-cov"]
+# ruff is MIT. Pinned exactly so a new release cannot turn a green branch
+# red on its own; dependabot's pip ecosystem raises the bump as a review.
+# CI reads this pin back out of the file, so it is the only copy.
+dev = ["ruff==0.16.6"]
 
 [project.scripts]
 claude-usage = "claude_usage.ui.cli.main:main"
 claude-usage-app = "claude_usage.ui.app.main:main"
 
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=84.0.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
@@ -31,6 +35,37 @@ testpaths = ["tests"]
 # An unregistered marker is a typo, not a feature: without this a
 # misspelled @pytest.mark.skipif silently never skips anything.
 addopts = "--strict-markers"
+
+[tool.ruff]
+# Wider than the 88 default: this codebase favours descriptive names and
+# full sentences in comments, and 88 was forcing wraps that read worse.
+line-length = 100
+# sample/ is a standalone two-file illustration of the onion architecture.
+# Nothing imports it and it is not packaged, so linting it would only
+# generate findings nobody acts on.
+#
+# The Markdown exclusion is about the formatter: ruff reformats Python
+# fenced blocks inside .md, and the specs and plans here are records of what
+# was decided at a point in time. Their samples should keep reading the way
+# they were written rather than drifting with the formatter.
+extend-exclude = ["sample", "*.md"]
+# target-version is deliberately absent: ruff infers py311 from
+# requires-python, so the floor is declared in exactly one place.
+
+[tool.ruff.lint]
+# E/W/F is the pyflakes + pycodestyle base. I keeps the import ordering
+# the code already follows from drifting, UP keeps syntax current with the
+# 3.11 floor, and B/SIM/C4/RUF catch the mistakes that survive review.
+select = ["E", "W", "F", "I", "UP", "B", "SIM", "C4", "RUF"]
+# Comments here are prose, and prose uses real punctuation: an en dash in
+# "clamped to 0–100" is correct typography, not a mistyped hyphen.
+ignore = ["RUF003"]
+
+[tool.ruff.lint.per-file-ignores]
+# SIM300 reads any NAME_IN_CAPS as a literal and asks for the comparison to
+# be flipped. In a test the constant under test belongs on the left, where
+# "assert actual == expected" puts it, so the rule is backwards here.
+"tests/*" = ["SIM300"]
 
 [tool.coverage.run]
 source = ["claude_usage"]
